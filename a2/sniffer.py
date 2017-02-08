@@ -1,6 +1,12 @@
 # The previous line ensures that this script is run under the context
 # of the Python interpreter. Next, import the Scapy functions:
 from scapy.all import *
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(23, GPIO.OUT)
+GPIO.setup(24, GPIO.OUT)
+GPIO.output(24, HIGH)
 # Define the interface name that we will be sniffing from, you can
 # change this if needed.
 interface = "mon0"
