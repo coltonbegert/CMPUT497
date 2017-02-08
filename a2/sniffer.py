@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(23, GPIO.OUT)
 GPIO.setup(24, GPIO.OUT)
-GPIO.output(24, HIGH)
+GPIO.output(24, GPIO.HIGH)
 # Define the interface name that we will be sniffing from, you can
 # change this if needed.
 interface = "mon0"
