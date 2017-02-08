@@ -22,13 +22,16 @@ def sniffmgmt(p):
         # the subtype is one of our management frame subtypes indicating a
         # a wireless client
         if p.type == 0 and p.subtype in stamgmtstypes:
+            extra = p.notdecoded
+            rssi = -(256-ord(extra[-4:-3]))
+            print "WiFi signal strength:", rssi, "dBm of", p.addr2, p.info
             # We only want to print the MAC address of the client if it
             # hasn't already been observed. Check our list and if the
             # client address isn't present, print the address and then add
             # it to our list.
-            if p.addr2 in yannis:
-                print "YANNIS IS HERE GET DOWN"
-            if p.addr2 not in observedclients:
+            if p.addr2.upper() in yannis and 0:
+                print "YANNIS IS HERE GET DOWN" + p.addr2
+            if p.addr2 not in observedclients and 0:
                 print p.addr2
                 observedclients.append(p.addr2)
 # With the sniffmgmt() function complete, we can invoke the Scapy sniff()
