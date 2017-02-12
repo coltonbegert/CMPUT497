@@ -61,7 +61,7 @@ double totalInRange = 0;
 //Function prototypes
 void test();
 void ttoedge(node *p);
-void bounce(node *p);
+void bounce(node *p, int edge);
 double distance(node *p1, node *p2);
 void init();
 void remove_event(event *event);
@@ -117,6 +117,17 @@ void drawNode(float x, float y) {
     drawFilledCircle((x - 500.0)/500.0, (y - 500.0)/500.0, 0.01);
 }
 int counter = 0;
+void drawConnection() {
+    // glColor3f(1.0,1.0,0.6);
+    glColor3f(0.0, 1.0, 1.0);
+    // glLineWidth(10);
+    glBegin(GL_LINES);
+    glVertex2f((GLfloat)((point1->x - 500.0)/500.0), (GLfloat)((point1->y - 500.0)/500.0));
+    // (point1->x - 500.0)/500.0, (point1->y - 500.0)/500.0, 0.25)
+    glVertex2f((GLfloat)((point2->x - 500.0)/500.0), (GLfloat)((point2->y - 500.0)/500.0));
+    glEnd();
+
+}
 
 void renderScene(void) {
 
@@ -169,8 +180,8 @@ void renderScene(void) {
     if (pop_event()) {
         // no more events
         if (inRange) {
-
         }
+        drawConnection();
         drawNode(point1->x, point1->y);
         drawNode(point2->x, point2->y);
         // sleep(1);
@@ -229,7 +240,13 @@ void test() {
     // printf("%f\n", ttoedge(point));
 
 }
-double randr(int a) {return (double)(((double)rand()/(double)RAND_MAX) * (double)a);}
+double randr(int a) {
+    double random = 0;
+    while (random == 0) {
+        random = (double)(((double)rand()/(double)RAND_MAX) * (double)a);
+    }
+    return random;
+}
 
 void init() {
     point1 = malloc(sizeof(node));
@@ -265,68 +282,102 @@ typedef struct {
 edgeCol edgeCollision;
 
 void ttoedge(node *p) {
-    double minTime = 1.0/0.0; // positive infinity
+    // double minTime = 1.0/0.0; // positive infinity
+    double minTime = INFINITY;
     double newTime;
     int edge = 0;
+
+    // if (p->vx >= 0) {
+    //     (BOARDSIZE - p->x) /
+    // }
 
     if (p->vx < 0) {
         newTime = (p->x / -p->vx);
         if (newTime < minTime && newTime >=0) {
             minTime = newTime;
+            edge = 4;
         }
+        // printf("newtime = %f, edge=%d\n", newTime,4);
         // printf("1, %f\n", newTime);
     } else {
         newTime = (BOARDSIZE- p->x) / p->vx;
-        if (newTime < minTime) {
+        if (newTime < minTime && newTime >=0) {
             minTime = newTime;
+            edge = 2;
         }
+        // printf("newtime = %f, edge=%d\n", newTime,2);
         // printf("2, %f\n", newTime);
     }
 
     if (p->vy < 0) {
         newTime = p->y / -p->vy;
-        if (newTime < minTime) {
+        if (newTime < minTime && newTime >=0) {
             minTime = newTime;
+            edge = 1;
         }
+        // printf("newtime = %f, edge=%d\n", newTime,1);
         // printf("3, %f\n", newTime);
     } else {
         newTime = (BOARDSIZE - p->y) / p->vy;
-        if (newTime < minTime) {
+        if (newTime < minTime && newTime >=0) {
             minTime = newTime;
+            edge = 3;
         }
+        // printf("newtime = %f, edge=%d\n", newTime,3);
         // printf("4, %f\n", newTime);
     }
+    // printf("tto: edge %d, x=%f, y=%f, vx=%f, vy=%f, time=%f\n", edge, p->x, p->y, p->vx, p->vy, minTime);
     edgeCollision.time = minTime;
     edgeCollision.edge = edge;
     // return edgeCol;
 }
 
 // gives a node a random velocity vector upon wall collision
-void bounce(node *p) {
+void bounce(node *p, int edge) {
     // printf("AHHHHHHHHH\n");
-    bool changed = false;
-    if(p->x <= 0.01) {
-        p->vx = randr(RANDMAX);
-        p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-        changed = true;
+
+    switch (edge) {
+        case 1:
+            p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+            p->vy = randr(RANDMAX);
+        break;
+        case 2:
+            p->vx = -randr(RANDMAX);
+            p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+        break;
+        case 3:
+            p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+            p->vy = -randr(RANDMAX);
+        break;
+        case 4:
+            p->vx = randr(RANDMAX);
+            p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+        break;
+
     }
-    if (p->x >= BOARDSIZE-0.01) {
-        p->vx = -randr(RANDMAX);
-        p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-        changed = true;
-    }
-    if(p->y <= 0.01) {
-        p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-        p->vy = randr(RANDMAX);
-        changed = true;
-    }
-    if (p->y >= BOARDSIZE-0.01) {
-        p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-        p->vy = -randr(RANDMAX);
-        changed = true;
-    }
-    if (changed) return;
-    // printf("fperror\n");
+    // bool changed = false;
+    // if(p->x <= 0.01) {
+    //     p->vx = randr(RANDMAX);
+    //     p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+    //     changed = true;
+    // }
+    // if (p->x >= BOARDSIZE-0.01) {
+    //     p->vx = -randr(RANDMAX);
+    //     p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+    //     changed = true;
+    // }
+    // if(p->y <= 0.01) {
+    //     p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+    //     p->vy = randr(RANDMAX);
+    //     changed = true;
+    // }
+    // if (p->y >= BOARDSIZE-0.01) {
+    //     p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
+    //     p->vy = -randr(RANDMAX);
+    //     changed = true;
+    // }
+    // if (changed) return;
+    // // printf("fperror\n");
 }
 
 // Returns the euclidea distance between two nodes
@@ -338,7 +389,7 @@ void update() {
     // printf("update:: x1: %f, x2: %f, y1: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
     double elapsedTime = HEAD->timeOfEvent - currentTime;
     point1->x += elapsedTime*point1->vx;
-    point1->y += elapsedTime*point2->vy;
+    point1->y += elapsedTime*point1->vy;
     point2->x += elapsedTime*point2->vx;
     point2->y += elapsedTime*point2->vy;
     // printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
@@ -353,23 +404,28 @@ void print_queue() {
     printf("end\n");
 }
 bool pop_event() {
-    printf("update:: x1: %f, x2: %f, y1: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
     // printf("QUEUE LENGTH%d\n", quenlength);
     // print_queue();
     // no evnet to pop
     if (HEAD == NULL) return false;
     update();
+    if (point1->x < -10 || point1->y < -10 || point2->x < -10 || point2->y > 1010 || point1->x > 1010 || point1->y > 1010 || point2->x > 1010 || point2->y > 1010) {
+        printf("\nnode %d collides with wall %d\n", HEAD->type, HEAD->wall);
+        printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
+        printf("\t\tvx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
+        exit(0);
+    }
     currentTime = HEAD->timeOfEvent;
     // printf("time: %f\n", currentTime);
 
     int eventType = HEAD->type;
     // printf("et:%d\n", eventType);
     if (eventType == 1) {
-        bounce(point1);
+        bounce(point1, HEAD->wall);
         // remove_event(HEAD);
         // create_event(1);
     } else if (eventType == 2) {
-        bounce(point2);
+        bounce(point2, HEAD->wall);
         // remove_event(HEAD);
         // create_event(2);
 
@@ -425,6 +481,7 @@ void create_event(int type) {
         // this is the type of entering or exiting area of influence.
         // for loop to determine if anything happens before a bounce
         // printf("hi\n");
+
     double timeToTransition = ttotrans();
     // printf("hello\n");
     if (timeToTransition == -1) {
@@ -435,7 +492,7 @@ void create_event(int type) {
             new_event->type = 3;
             new_event->valid = true;
             new_event->timeOfEvent = currentTime + timeToTransition;
-            insert_event(new_event);
+            // insert_event(new_event);
         }
 
     }
