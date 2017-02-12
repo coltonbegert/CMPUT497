@@ -3,12 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 // #include <cmocka.h>
-// #include <GLUT/glut.h>
-#ifdef __APPLE__
 #include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 
 #ifndef BOARDSIZE
 #define BOARDSIZE 1000
@@ -27,8 +22,6 @@
 #endif
 
 
-
-
 typedef struct node{
     double x;
     double y;
@@ -41,7 +34,6 @@ typedef struct event {
     node *point2;
     double timeOfEvent;
     int type;
-    int wall;
     bool valid;
     struct event *next;
     struct event *prev;
@@ -60,7 +52,7 @@ double totalInRange = 0;
 
 //Function prototypes
 void test();
-void ttoedge(node *p);
+float ttoedge(node *p);
 void bounce(node *p);
 double distance(node *p1, node *p2);
 void init();
@@ -70,146 +62,20 @@ bool pop_event();
 void create_event(int type);
 double ttotrans();
 
-void drawFilledCircle(GLfloat x, GLfloat y, GLfloat radius){
-	int i;
-	int triangleAmount = 20; //# of triangles used to draw circle
-
-	//GLfloat radius = 0.8f; //radius
-	GLfloat twicePi = 2.0f * M_PI;
-    // glColor3b(0xFA, 0x0, 0x0);
-    // glColor3i(9999999, 99999999, 999999999);
-    glColor3f(1.0, 0.0, 0.0);
-
-	glBegin(GL_TRIANGLE_FAN);
-		glVertex2f(x, y); // center of circle
-		for(i = 0; i <= triangleAmount;i++) {
-			glVertex2f(
-		            x + (radius * cos(i *  twicePi / triangleAmount)),
-			    y + (radius * sin(i * twicePi / triangleAmount))
-			);
-		}
-	glEnd();
-}
-
-
-// const float DEG2RAD = 3.14159/180;
-void drawHollowCircle(GLfloat x, GLfloat y, GLfloat radius){
-	int i;
-	int lineAmount = 100; //# of triangles used to draw circle
-    glColor3f(1.0,1.0,0.6);
-
-
-	//GLfloat radius = 0.8f; //radius
-	GLfloat twicePi = 2.0f * M_PI;
-    // printf("test\n");
-	glBegin(GL_LINE_LOOP);
-		for(i = 0; i <= lineAmount;i++) {
-			glVertex2f(
-			    x + (radius * cos(i *  twicePi / lineAmount)),
-			    y + (radius* sin(i * twicePi / lineAmount))
-			);
-		}
-	glEnd();
-    // printf("end\n");
-}
-void drawNode(float x, float y) {
-    drawHollowCircle((x - 500.0)/500.0, (y - 500.0)/500.0, 0.25);
-    drawFilledCircle((x - 500.0)/500.0, (y - 500.0)/500.0, 0.01);
-}
-int counter = 0;
-
-void renderScene(void) {
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// glBegin(GL_TRIANGLES);
-	// 	glVertex3f(-0.5,-0.5,0.0);
-	// 	glVertex3f(0.5,0.0,0.0);
-	// 	glVertex3f(0.0,0.5,0.0);
-	// glEnd();
-
-    // float x1,y1,x2,y2;
-    // float angle;
-    // double radius=0.1;
-    //
-    // x1 = 0.5,y1=0.6;
-    // glColor3f(1.0,1.0,1.0);
-    //
-    // glBegin(GL_TRIANGLE_FAN);
-    // glVertex2f(x1,y1);
-    //
-    // for (angle=1.0f;angle<361.0f;angle+=0.2)
-    // {
-    //     x2 = x1+sin(angle)*radius;
-    //     y2 = y1+cos(angle)*radius;
-    //     glVertex2f(x2,y2);
-    // }
-    //
-    // x1 = 0.5,y1=0.6;
-    // glColor3f(1.0,1.0,1.0);
-    //
-    // glBegin(GL_TRIANGLE_FAN);
-    // glVertex2f(x1,y1);
-    //
-    // for (angle=1.0f;angle<361.0f;angle+=0.2)
-    // {
-    //     x2 = x1+sin(angle)*radius;
-    //     y2 = y1+cos(angle)*radius;
-    //     glVertex2f(x2,y2);
-    // }
-    //
-    // glEnd();
-    // drawHollowCircle(0, 1, 0.25);
-    // drawFilledCircle(0, 1, 0.01);
-    //
-    // drawHollowCircle(0, 0, 0.25);
-    // drawFilledCircle(0, 0, 0.01);
-    // drawNode(500, 500);
-    // printf("%f,%f\n", point1->x, point1->y);
-    if (pop_event()) {
-        // no more events
-        if (inRange) {
-
-        }
-        drawNode(point1->x, point1->y);
-        drawNode(point2->x, point2->y);
-        // sleep(1);
-        // break;
-    } else {
-        printf("Ran out after %d events\n", counter);
-        exit(0);
-
-    }
-
-	glutSwapBuffers();
-}
-
 int main(int argc, char const *argv[]) {
-
     srand(0);
     init();
-    glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(100,100);
-	glutInitWindowSize(1000,1000);
-	glutCreateWindow("Lighthouse3D- GLUT Tutorial");
-
-    // register callbacks
-    glutDisplayFunc(renderScene);
-    glutIdleFunc(renderScene);
-
-	// enter GLUT event processing cycle
-	glutMainLoop();
+    int counter = 0;
     // simulation will run for 1000 events
-    // while (counter++ < 500000) {
-    //     printf("%d\n", counter);
-    //     if (!pop_event()) {
-    //         // no more events
-    //         printf("Ran out after %d events\n", counter);
-    //         break;
-    //     }
-    // }
-    // printf("%f\n", 100*totalInRange/currentTime);
+    while (counter++ < 500000) {
+        printf("%d\n", counter);
+        if (!pop_event()) {
+            // no more events
+            printf("Ran out after %d events\n", counter);
+            break;
+        }
+    }
+    printf("%f\n", 100*totalInRange/currentTime);
 
     // node pointArray[2];
 
@@ -226,7 +92,7 @@ void test() {
     point->y = 0;
     point->vx = 200;
     point->vy = 300;
-    // printf("%f\n", ttoedge(point));
+    printf("%f\n", ttoedge(point));
 
 }
 double randr(int a) {return (double)(((double)rand()/(double)RAND_MAX) * (double)a);}
@@ -246,8 +112,8 @@ void init() {
     point2->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
     point2->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
 
-    // printf("init:: x1: %f, y1: %f, x2: %f, y2: %f,",point1->x, point1->y,  point2->x,  point2->y);
-    // printf("vx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
+    printf("init:: x1: %f, y1: %f, x2: %f, y2: %f,",point1->x, point1->y,  point2->x,  point2->y);
+    printf("vx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
 
     if (distance(point1, point2) < 250) {
         inRange = true;
@@ -258,16 +124,9 @@ void init() {
 
 }
 
-typedef struct {
-    float time;
-    int edge;
-} edgeCol;
-edgeCol edgeCollision;
-
-void ttoedge(node *p) {
+float ttoedge(node *p) {
     double minTime = 1.0/0.0; // positive infinity
     double newTime;
-    int edge = 0;
 
     if (p->vx < 0) {
         newTime = (p->x / -p->vx);
@@ -296,9 +155,7 @@ void ttoedge(node *p) {
         }
         // printf("4, %f\n", newTime);
     }
-    edgeCollision.time = minTime;
-    edgeCollision.edge = edge;
-    // return edgeCol;
+    return minTime;
 }
 
 // gives a node a random velocity vector upon wall collision
@@ -326,7 +183,7 @@ void bounce(node *p) {
         changed = true;
     }
     if (changed) return;
-    // printf("fperror\n");
+    printf("fperror\n");
 }
 
 // Returns the euclidea distance between two nodes
@@ -341,7 +198,7 @@ void update() {
     point1->y += elapsedTime*point2->vy;
     point2->x += elapsedTime*point2->vx;
     point2->y += elapsedTime*point2->vy;
-    // printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
+    printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
 }
 // Remove and Item from the queue and handle it
 
@@ -353,9 +210,8 @@ void print_queue() {
     printf("end\n");
 }
 bool pop_event() {
-    printf("update:: x1: %f, x2: %f, y1: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
     // printf("QUEUE LENGTH%d\n", quenlength);
-    // print_queue();
+    print_queue();
     // no evnet to pop
     if (HEAD == NULL) return false;
     update();
@@ -363,7 +219,7 @@ bool pop_event() {
     // printf("time: %f\n", currentTime);
 
     int eventType = HEAD->type;
-    // printf("et:%d\n", eventType);
+    printf("et:%d\n", eventType);
     if (eventType == 1) {
         bounce(point1);
         // remove_event(HEAD);
@@ -404,20 +260,16 @@ void create_event(int type) {
         // new_event->point1
         new_event->type = 1;
         new_event->valid = true;
-        // printf("ttoedge1: %f\n", ttoedge(point1));
-        ttoedge(point1);
-        new_event->timeOfEvent = currentTime + edgeCollision.time;
-        new_event->wall = edgeCollision.edge;
+        printf("ttoedge1: %f\n", ttoedge(point1));
+        new_event->timeOfEvent = currentTime + ttoedge(point1);
         insert_event(new_event);
         // return;
     } else if (type == 2) {
         event *new_event = malloc(sizeof(event));
         new_event->type = 2;
         new_event->valid = true;
-        // printf("ttoedge2: %f, vx = %f, vy = %f\n", ttoedge(point2), point2->vx, point2->vy);
-        ttoedge(point2);
-        new_event->timeOfEvent = currentTime + edgeCollision.time;
-        new_event->wall = edgeCollision.edge;
+        printf("ttoedge2: %f, vx = %f, vy = %f\n", ttoedge(point2), point2->vx, point2->vy);
+        new_event->timeOfEvent = currentTime + ttoedge(point2);
         insert_event(new_event);
         // return;
     }
