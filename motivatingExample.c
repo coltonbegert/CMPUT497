@@ -27,7 +27,9 @@
 #define COMM 3
 #endif
 
-
+#ifndef opengl
+#define opengl false
+#endif
 
 
 typedef struct node{
@@ -47,6 +49,19 @@ typedef struct event {
     struct event *next;
     struct event *prev;
 } event;
+
+typedef struct {
+    float time;
+    int edge;
+} edgeCol;
+
+typedef struct {
+    float time;
+    int phase;
+} transition;
+
+edgeCol edgeCollision;
+transition transitionPhase;
 
 event *HEAD = NULL;
 event *TAIL = NULL;
@@ -70,6 +85,7 @@ void insert_event(event *new_event);
 bool pop_event();
 void create_event(int type);
 double ttotrans();
+void statistics(double t);
 
 void drawFilledCircle(GLfloat x, GLfloat y, GLfloat radius){
 	int i;
@@ -141,7 +157,7 @@ void renderScene(void) {
         }
         drawNode(point1->x, point1->y);
         drawNode(point2->x, point2->y);
-        sleep(1);
+        // sleep(1);
         // break;
     } else {
         printf("Ran out after %d events\n", counter);
@@ -151,20 +167,51 @@ void renderScene(void) {
 
 	glutSwapBuffers();
 }
-
+FILE *f;
 int main(int argc, char const *argv[]) {
     int maxTime = 100000;
     int seed = time(NULL);
     printf("%d\n", seed);
     srand(seed);
+
+
+    // f = popen("gnuplot", "w");
+    // fprintf(f, "set term png; "
+    // "set out 'beforeafter.png'\n"
+    // "set xlabel 'before'\n"
+    // "set ylabel 'after'\n"
+    // "plot '-'\n");
+    f = popen("gnuplot", "w");
+    // f = fopen("./gnuplot.txt", "w");
+    fprintf(f, "set term png; "
+    "set out 'beforeafter.png'\n"
+    "set xlabel 'time'\n"
+    "set ylabel 'frequency'\n"
+    "set boxwidth 10\n"
+    // "binwidth=10\n"
+    // "bin(x, width)=width*floor(x/width)\n"
+    "bin_width = 10;\n"
+    "bin_number(x) = floor(x/bin_width)\n"
+    "rounded(x) = bin_width * ( bin_number(x) + 0.5 )\n"
+    "plot '-' using (rounded($1)):(1) smooth frequency with boxes\n");
+    // f = fopen("./gnuplot.txt", "w");
+    // fprintf(f, "set term png; "
+    // "set out 'beforeafter.png'\n"
+    // "set xlabel 'before'\n"
+    // "set ylabel 'after'\n"
+    // "binwidth=7\n"
+    // "bin(x,width)=width*floor(x/width)\n"
+    // "plot '-' using (bin($1,binwidth) + binwidth/2):(1.0/STATS_records) smooth freq with boxes\n");
+
+    // srand(1487467636);
     init();
-    bool opengl = false;
+    // bool opengl = false;
     if (opengl) {
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
         glutInitWindowPosition(100,100);
         glutInitWindowSize(1000,1000);
-        glutCreateWindow("Lighthouse3D- GLUT Tutorial");
+        glutCreateWindow("Simulation");
 
         // register callbacks
         glutDisplayFunc(renderScene);
@@ -252,11 +299,7 @@ void init() {
 
 }
 
-typedef struct {
-    float time;
-    int edge;
-} edgeCol;
-edgeCol edgeCollision;
+
 
 void ttoedge(node *p) {
     // double minTime = 1.0/0.0; // positive infinity
@@ -384,9 +427,9 @@ bool pop_event() {
     // printf("QUEUE LENGTH%d\n", quenlength);
     // print_queue();
     // no evnet to pop
-    if (distance(point1, point2) > 250 && inRange) {
-        printf("shit went south\n");
-        exit(1);
+    if (distance(point1, point2) > 250 && inRange && HEAD->type != 3) {
+        printf("shit went south: %d\n", HEAD->type);
+        // exit(1);
     }
     if (HEAD == NULL) return false;
     update();
@@ -412,16 +455,23 @@ bool pop_event() {
         // create_event(2);
 
     } else if (eventType == 3) {
-        // this is where we can determine if it is entering or exiting the area
-        if (inRange) {
-            // printf("hello\n");
-            totalInRange += currentTime - lastTransition;
+        if (HEAD->wall != inRange) {
+            if (HEAD-> wall == 0) {
+                totalInRange += currentTime - lastTransition;
+                statistics(currentTime - lastTransition);
+
+            }
         }
+        // this is where we can determine if it is entering or exiting the area
+        // if (inRange) {
+        //     // printf("hello\n");
+        //     totalInRange += currentTime - lastTransition;
+        // }
         //     lastTransition = currentTime;
         // } else {
         // }
         lastTransition = currentTime;
-        inRange = !inRange;
+        inRange = HEAD->wall;
 
 
         //after handling the event
@@ -464,25 +514,27 @@ void create_event(int type) {
         insert_event(new_event);
         // return;
     }
-    if (type == 3 || type ==1 || 1) {
-        double timeToTransition = ttotrans();
-        // printf("hello\n");
-        printf("T: %f", timeToTransition);
-        if (timeToTransition <= 0.001) {
-            printf("\n");
-            return;
+    double transition = ttotrans();
+    // printf("hello\n");
+    if (transition <= 0) {
+        // printf("T: %f", transitionPhase.time);
+        // printf("\n");
+        return;
+    } else {
+        if (HEAD->timeOfEvent > (transitionPhase.time + currentTime) && (HEAD->type != 3 || HEAD->wall != transitionPhase.phase) ) {
+            // printf("%f, %f, c:%f\n", HEAD->timeOfEvent, (timeToTransition + currentTime), currentTime);
+            printf("Phase time: %f\n", transitionPhase.time);
+            event *new_event = malloc(sizeof(event));
+            new_event->type = 3;
+            new_event->valid = true;
+            new_event->wall = transitionPhase.phase;
+            new_event->timeOfEvent = currentTime + transitionPhase.time;
+            insert_event(new_event);
         } else {
-            if (HEAD->timeOfEvent > (timeToTransition + currentTime)) {
-                printf("here\n");
-                event *new_event = malloc(sizeof(event));
-                new_event->type = 3;
-                new_event->valid = true;
-                new_event->timeOfEvent = currentTime + timeToTransition;
-                insert_event(new_event);
-            }
-
+            printf("distance befor error %f\n", distance(point1, point2));
         }
     }
+}
 
 
         // this is the type of entering or exiting area of influence.
@@ -506,7 +558,9 @@ void create_event(int type) {
     //     }
     //
     // }
-}
+// }
+
+
 double ttotrans() {
     double A, B, C, m, b, r, x, y, vx, vy, d, X, t;
     x = point2->x - point1->x;
@@ -527,104 +581,70 @@ double ttotrans() {
     }
     if (d < 0.001) return -1;
 
-    if (inRange) {
-        X =(-B - sqrt(d)) / (2 * A);
+    if (distance(point1, point2) > 250) {
+        // printf("1\n");
+        transitionPhase.phase = 1;
+        // X =(-B - sqrt(d)) / (2 * A);
     } else {
-        X = (-B + sqrt(d)) / (2 * A);
+        // printf("0\n");
+        transitionPhase.phase = 0;
+        // X = (-B + sqrt(d)) / (2 * A);
     }
-
-    return (X - x) / vx;
+    // transitionPhase.time = (X - x) / vx;
+    // return 1;
+    // return (X - x) / vx;
     X = (-B + sqrt(d)) / (2 * A);
     // if (X > 0) return X;
     // printf("A:%f, B: %f, C:%f, %f\n", A,B,C,d);
     // return X;
-    t = (X - x) / vx;
-    if (t > 0.0001) {
-        return t;
-    }
-    X =(-B - sqrt(d)) / (2 * A);
-    t = (X - x) / vx;
-    if (t > 0.0001) {
-        return t;
-    }
+    double t1 = t = (X - x) / vx;
 
-    return -1;
+    X = (-B - sqrt(d)) / (2 * A);
+    // if (X > 0) return X;
+    // printf("A:%f, B: %f, C:%f, %f\n", A,B,C,d);
+    // return X;
+    double t2 = (X - x) / vx;
+    printf("t1:%f, t2:%f\n", t1,t2);
+    if (t1 > 0.000001 && (t1 <= t2 || t2< 0.000001)) {
+        printf("t1\n");
+        transitionPhase.time =  t1;
+        transitionPhase.phase = 0;
+    } else if (t2 > 0.000001) {
+        printf("t2\n");
+        transitionPhase.time =  t2;
+        transitionPhase.phase = 1;
+    } else {
+        printf("t-1\n");
+        // transitionPhase.time =  1;
+        return -1;
+    }
+    // if (t > 0.0001) {
+    //     transitionPhase.phase = 1;
+    //     transitionPhase.time =  t;
+    // } else {
+    //     X =(-B - sqrt(d)) / (2 * A);
+    //     t = (X - x) / vx;
+    //     if (t > 0.0001) {
+    //         transitionPhase.phase = 0;
+    //         transitionPhase.time =  t;
+    //     } else {
+    //         return -1;
+    //
+    //     }
+    //
+    // }
+    // if (distance(point1, point2) > 250.00001) {
+    //     printf("1\n");
+    //     transitionPhase.phase = 1;
+    //     // X =(-B - sqrt(d)) / (2 * A);
+    // } else if (distance(point1, point2) < 249.9999)  {
+    //     printf("0\n");
+    //     transitionPhase.phase = 0;
+    //     // X = (-B + sqrt(d)) / (2 * A);
+    // }
+    return 1;
 }
 
-// double ttotrans() {
-//     // printf("here ttotrans\n");
-//     double vxt = point1->vx - point2->vx;
-//     double vyt = point1->vy - point2->vy;
-//
-//     double tcpa = (vxt*point1->x - vxt*point2->x + vyt*point1->y - vyt*point2->y)/(vxt*point1->vx - vxt*point2->vx + vyt*point1->vy - vyt*point2->vy);
-//
-//     if (isnan(tcpa)) {
-//         /* code */
-//         // printf("hello\n");
-//         return -1;
-//     }
-//     // double curDist = distance(point1, point2);
-//     // printf("current Distance: %f\n", curDist);
-//     // if (curDist < 250) {
-//     //     //calc time to exit
-//     // }
-//
-//     double root = sqrt(pow(point1->x + point1->vx*tcpa + point2->x + point2->vx*tcpa,2) + pow(point1->y + point1->vy*tcpa + point2->y + point2->vy*tcpa,2));
-//     // printf("init:: x1: %f, y1: %f, x2: %f, y2: %f,",point1->x, point1->y,  point2->x,  point2->y);
-//     // printf("vx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
-//     // printf("vx1: %f, vx2: %f, vy1: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
-//     if (isnan(root)) return -1;
-//     // if ()
-//     if (inRange) {
-//         return 250 + root;
-//     } else {
-//         if (root > 250) {
-//             return -1;
-//         } else {
-//             return 250 - root;
-//         }
-//     }
-// }
-
-    // if < curtime ret -val else ret +val
-//     void insert_event(event *new_event) {
-//
-//         // event *new_event = malloc(sizeof(event));
-//         printf("next event at %f\n", new_event->timeOfEvent);
-//         if (HEAD == NULL)  {
-//             printf("head null\n");
-//             new_event->prev = NULL;
-//             new_event->next = NULL;
-//             HEAD = new_event;
-//             TAIL = HEAD;
-//             quenlength++;
-//             if (HEAD == NULL) printf("head should not be null\n");
-//         } else {
-//             // INSERT ITEMS INTO THE QUEUE IN A SORTED ORDER
-//             int depth = 0;
-//             bool changed = false;
-//             for (event *current = HEAD; current != NULL; current = current->next) {
-//                 printf("current time:%f,new time:%f\n", current->timeOfEvent, new_event->timeOfEvent);
-//                 depth++;
-//                 if (new_event->timeOfEvent < current->timeOfEvent) {
-//                     changed = true;
-//                     new_event->prev = current->prev;
-//                     new_event->next = current;
-//                     current->prev = new_event;
-//                     quenlength++;
-//                 }
-//             }
-//             if (!changed) {
-//                 new_event->prev = TAIL;
-//                 new_event->next = NULL;
-//                 // ->prev = new_event;
-//                 TAIL = new_event;
-//                 quenlength++;
-//             }
-//             printf("depth: %d\n", depth);
-//         }
-//     }
-// }
 
 void insert_event(event *e) {
 
@@ -671,92 +691,9 @@ void remove_event(event *e) {
     }
     free(e);
 }
-
-// remove an event from the queue
-// void remove_event(event *event) {
-//     // if (HEAD == NULL) printf("1head should not be null\n");
-//     printf("REMOVING VALUE\n");
-//     quenlength--;
-//
-//     // if (e == HEAD) {
-//     //     HEAD = e->next;
-//     // }
-//     // if (e->prev == NULL) {
-//     //     TAIL = e->prev;
-//     // }
-//
-//
-//     // /* base case */
-//     //   if(HEAD == NULL || e == NULL)
-//     //     return;
-//     //
-//     //   /* If node to be deleted is head node */
-//     //   if(HEAD == e) {
-//     //       printf("should do this\n");
-//     //       HEAD = e->next;
-//     //       if (HEAD == NULL) printf("3head should not be null\n");
-//     //   }
-//     //
-//     //   /* Change next only if node to be deleted is NOT the last node */
-//     //   if(e->next != NULL) e->next->prev = e->prev;
-//     //
-//     //   /* Change prev only if node to be deleted is NOT the first node */
-//     //   if(e->prev != NULL) e->prev->next = e->next;
-//     //
-//     //   /* Finally, free the memory occupied by del*/
-//     //   free(e);
-//     //   return;
-//   // }
-// //     e->prev->next = e->next;
-// //     e->next->prev = e->prev;
-// //
-// //
-// //
-// //
-// //
-//     if (event->prev == NULL) {
-//         HEAD = event->next;
-//         // event->next->prev = NULL;
-//     } else {
-//         event->prev->next = event->next;
-//     }
-//     if (event->next == NULL) {
-//         TAIL = event->prev;
-//         // event->prev->next = NULL;
-//     } else {
-//         event->next->prev = event->prev;
-//     }
-//     if (HEAD == NULL) printf("2head should not be null\n");
-//     free(event);
-// }
-// // remove item from list of active users
-// void remove_user(char *name, uint8_t name_len){
-//     for (user_t *user = head; user != NULL; user = user->next) {
-//         if (user->name_len == name_len) {
-//             int different = 0;
-//             for (int i = 0; i< name_len; i++) {
-//                 if (name[i] != user->name[i]) {
-//                     different = 1;
-//                 }
-//             }
-//             // if the correct name is found it is deleted
-//             // linked list deletion
-//             if (!different) {
-//                 if (user->prev == NULL) {
-//                     head = user->next;
-//                     // user->next->prev = NULL;
-//                 } else {
-//                     user->prev->next = user->next;
-//                 }
-//                 if (user->next == NULL) {
-//                     tail = user->prev;
-//                 } else {
-//                     user->next->prev = user->prev;
-//                 }
-//                 // free both name and struct
-//                 free(user->name);
-//                 free(user);
-//             }
-//         }
-//     }
-// }
+int statCounter = 0;
+void statistics(double t) {
+    // local int counter
+    // fprintf(f, "%d %f\n", statCounter++, t);
+    fprintf(f, "%f\n", t);
+}
