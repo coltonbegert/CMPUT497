@@ -10,6 +10,7 @@
 #include <GL/glut.h>
 #endif
 
+
 #ifndef BOARDSIZE
 #define BOARDSIZE 1000
 #endif
@@ -113,7 +114,7 @@ void drawHollowCircle(GLfloat x, GLfloat y, GLfloat radius){
     // printf("end\n");
 }
 void drawNode(float x, float y) {
-    drawHollowCircle((x - 500.0)/500.0, (y - 500.0)/500.0, 0.25);
+    drawHollowCircle((x - 500.0)/500.0, (y - 500.0)/500.0, 0.5);
     drawFilledCircle((x - 500.0)/500.0, (y - 500.0)/500.0, 0.01);
 }
 int counter = 0;
@@ -133,58 +134,14 @@ void renderScene(void) {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// glBegin(GL_TRIANGLES);
-	// 	glVertex3f(-0.5,-0.5,0.0);
-	// 	glVertex3f(0.5,0.0,0.0);
-	// 	glVertex3f(0.0,0.5,0.0);
-	// glEnd();
-
-    // float x1,y1,x2,y2;
-    // float angle;
-    // double radius=0.1;
-    //
-    // x1 = 0.5,y1=0.6;
-    // glColor3f(1.0,1.0,1.0);
-    //
-    // glBegin(GL_TRIANGLE_FAN);
-    // glVertex2f(x1,y1);
-    //
-    // for (angle=1.0f;angle<361.0f;angle+=0.2)
-    // {
-    //     x2 = x1+sin(angle)*radius;
-    //     y2 = y1+cos(angle)*radius;
-    //     glVertex2f(x2,y2);
-    // }
-    //
-    // x1 = 0.5,y1=0.6;
-    // glColor3f(1.0,1.0,1.0);
-    //
-    // glBegin(GL_TRIANGLE_FAN);
-    // glVertex2f(x1,y1);
-    //
-    // for (angle=1.0f;angle<361.0f;angle+=0.2)
-    // {
-    //     x2 = x1+sin(angle)*radius;
-    //     y2 = y1+cos(angle)*radius;
-    //     glVertex2f(x2,y2);
-    // }
-    //
-    // glEnd();
-    // drawHollowCircle(0, 1, 0.25);
-    // drawFilledCircle(0, 1, 0.01);
-    //
-    // drawHollowCircle(0, 0, 0.25);
-    // drawFilledCircle(0, 0, 0.01);
-    // drawNode(500, 500);
-    // printf("%f,%f\n", point1->x, point1->y);
     if (pop_event()) {
         // no more events
         if (inRange) {
+            drawConnection();
         }
-        drawConnection();
         drawNode(point1->x, point1->y);
         drawNode(point2->x, point2->y);
-        // sleep(1);
+        sleep(1);
         // break;
     } else {
         printf("Ran out after %d events\n", counter);
@@ -196,21 +153,41 @@ void renderScene(void) {
 }
 
 int main(int argc, char const *argv[]) {
-
-    srand(0);
+    int maxTime = 100000;
+    int seed = time(NULL);
+    printf("%d\n", seed);
+    srand(seed);
     init();
-    glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(100,100);
-	glutInitWindowSize(1000,1000);
-	glutCreateWindow("Lighthouse3D- GLUT Tutorial");
+    bool opengl = false;
+    if (opengl) {
+        glutInit(&argc, argv);
+        glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+        glutInitWindowPosition(100,100);
+        glutInitWindowSize(1000,1000);
+        glutCreateWindow("Lighthouse3D- GLUT Tutorial");
 
-    // register callbacks
-    glutDisplayFunc(renderScene);
-    glutIdleFunc(renderScene);
+        // register callbacks
+        glutDisplayFunc(renderScene);
+        glutIdleFunc(renderScene);
 
-	// enter GLUT event processing cycle
-	glutMainLoop();
+        // enter GLUT event processing cycle
+        glutMainLoop();
+    } else {
+        while (pop_event() && currentTime < maxTime) {
+            counter ++;
+        }
+        if (currentTime < maxTime) {
+            printf("Ran out after %d events\n", counter);
+            exit(0);
+        }
+        printf("simulation complete. Ran for %ds completing %d events\n", maxTime, counter);
+        // if (pop_event()) {
+        //     // sleep(1);
+        //     // break;
+        // } else {
+        //
+        // }
+    }
     // simulation will run for 1000 events
     // while (counter++ < 500000) {
     //     printf("%d\n", counter);
@@ -407,6 +384,10 @@ bool pop_event() {
     // printf("QUEUE LENGTH%d\n", quenlength);
     // print_queue();
     // no evnet to pop
+    if (distance(point1, point2) > 250 && inRange) {
+        printf("shit went south\n");
+        exit(1);
+    }
     if (HEAD == NULL) return false;
     update();
     if (point1->x < -10 || point1->y < -10 || point2->x < -10 || point2->y > 1010 || point1->x > 1010 || point1->y > 1010 || point2->x > 1010 || point2->y > 1010) {
@@ -416,6 +397,7 @@ bool pop_event() {
         exit(0);
     }
     currentTime = HEAD->timeOfEvent;
+    printf("Time = %f\n", currentTime);
     // printf("time: %f\n", currentTime);
 
     int eventType = HEAD->type;
@@ -455,6 +437,11 @@ bool pop_event() {
 
 // create a new event to handle a state
 void create_event(int type) {
+    // if (distance(point1, point2) > 250) {
+    //     inRange = false;
+    // } else {
+    //     inRange = true;
+    // }
     if (type == 1) {
         event *new_event = malloc(sizeof(event));
         // new_event->point1
@@ -477,61 +464,127 @@ void create_event(int type) {
         insert_event(new_event);
         // return;
     }
+    if (type == 3 || type ==1 || 1) {
+        double timeToTransition = ttotrans();
+        // printf("hello\n");
+        printf("T: %f", timeToTransition);
+        if (timeToTransition <= 0.001) {
+            printf("\n");
+            return;
+        } else {
+            if (HEAD->timeOfEvent > (timeToTransition + currentTime)) {
+                printf("here\n");
+                event *new_event = malloc(sizeof(event));
+                new_event->type = 3;
+                new_event->valid = true;
+                new_event->timeOfEvent = currentTime + timeToTransition;
+                insert_event(new_event);
+            }
+
+        }
+    }
+
 
         // this is the type of entering or exiting area of influence.
         // for loop to determine if anything happens before a bounce
         // printf("hi\n");
 
-    double timeToTransition = ttotrans();
-    // printf("hello\n");
-    if (timeToTransition == -1) {
-        return;
-    } else {
-        if (HEAD->timeOfEvent > timeToTransition) {
-            event *new_event = malloc(sizeof(event));
-            new_event->type = 3;
-            new_event->valid = true;
-            new_event->timeOfEvent = currentTime + timeToTransition;
-            // insert_event(new_event);
-        }
-
-    }
-}
-
-double ttotrans() {
-    // printf("here ttotrans\n");
-    double vxt = point1->vx - point2->vx;
-    double vyt = point1->vy - point2->vy;
-
-    double tcpa = (vxt*point1->x - vxt*point2->x + vyt*point1->y - vyt*point2->y)/(vxt*point1->vx - vxt*point2->vx + vyt*point1->vy - vyt*point2->vy);
-
-    if (isnan(tcpa)) {
-        /* code */
-        // printf("hello\n");
-        return -1;
-    }
-    // double curDist = distance(point1, point2);
-    // printf("current Distance: %f\n", curDist);
-    // if (curDist < 250) {
-    //     //calc time to exit
+    // double timeToTransition = ttotrans();
+    // // printf("hello\n");
+    // printf("T: %f", timeToTransition);
+    // if (timeToTransition <= 0.001) {
+    //     printf("\n");
+    //     return;
+    // } else {
+    //     if (HEAD->timeOfEvent > timeToTransition) {
+    //         printf("here\n");
+    //         event *new_event = malloc(sizeof(event));
+    //         new_event->type = 3;
+    //         new_event->valid = true;
+    //         new_event->timeOfEvent = currentTime + timeToTransition;
+    //         insert_event(new_event);
+    //     }
+    //
     // }
-
-    double root = sqrt(pow(point1->x + point1->vx*tcpa + point2->x + point2->vx*tcpa,2) + pow(point1->y + point1->vy*tcpa + point2->y + point2->vy*tcpa,2));
-    // printf("init:: x1: %f, y1: %f, x2: %f, y2: %f,",point1->x, point1->y,  point2->x,  point2->y);
-    // printf("vx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
-    // printf("vx1: %f, vx2: %f, vy1: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
-    if (isnan(root)) return -1;
-    // if ()
-    if (inRange) {
-        return 250 + root;
-    } else {
-        if (root > 250) {
-            return -1;
-        } else {
-            return 250 - root;
-        }
-    }
 }
+double ttotrans() {
+    double A, B, C, m, b, r, x, y, vx, vy, d, X, t;
+    x = point2->x - point1->x;
+    y = point2->y - point1->y;
+    vx = point2->vx - point1->vx;
+    vy = point2->vy - point1->vy;
+    m = vy / vx;
+    b = y - (m * x);
+    r = 250;
+    A = 1 + (m * m);
+    B = 2 * m * b;
+    C = (b * b) - (r * r);
+    d = (B * B) - (4 * A * C);
+    // printf("y = %fx + %f\n", m, b);
+    // printf("d:%f\n", d);
+    if (d < 0.001 && d > -0.001) {
+        // printf("yahooo\n");
+    }
+    if (d < 0.001) return -1;
+
+    if (inRange) {
+        X =(-B - sqrt(d)) / (2 * A);
+    } else {
+        X = (-B + sqrt(d)) / (2 * A);
+    }
+
+    return (X - x) / vx;
+    X = (-B + sqrt(d)) / (2 * A);
+    // if (X > 0) return X;
+    // printf("A:%f, B: %f, C:%f, %f\n", A,B,C,d);
+    // return X;
+    t = (X - x) / vx;
+    if (t > 0.0001) {
+        return t;
+    }
+    X =(-B - sqrt(d)) / (2 * A);
+    t = (X - x) / vx;
+    if (t > 0.0001) {
+        return t;
+    }
+
+    return -1;
+}
+
+// double ttotrans() {
+//     // printf("here ttotrans\n");
+//     double vxt = point1->vx - point2->vx;
+//     double vyt = point1->vy - point2->vy;
+//
+//     double tcpa = (vxt*point1->x - vxt*point2->x + vyt*point1->y - vyt*point2->y)/(vxt*point1->vx - vxt*point2->vx + vyt*point1->vy - vyt*point2->vy);
+//
+//     if (isnan(tcpa)) {
+//         /* code */
+//         // printf("hello\n");
+//         return -1;
+//     }
+//     // double curDist = distance(point1, point2);
+//     // printf("current Distance: %f\n", curDist);
+//     // if (curDist < 250) {
+//     //     //calc time to exit
+//     // }
+//
+//     double root = sqrt(pow(point1->x + point1->vx*tcpa + point2->x + point2->vx*tcpa,2) + pow(point1->y + point1->vy*tcpa + point2->y + point2->vy*tcpa,2));
+//     // printf("init:: x1: %f, y1: %f, x2: %f, y2: %f,",point1->x, point1->y,  point2->x,  point2->y);
+//     // printf("vx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
+//     // printf("vx1: %f, vx2: %f, vy1: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
+//     if (isnan(root)) return -1;
+//     // if ()
+//     if (inRange) {
+//         return 250 + root;
+//     } else {
+//         if (root > 250) {
+//             return -1;
+//         } else {
+//             return 250 - root;
+//         }
+//     }
+// }
 
     // if < curtime ret -val else ret +val
 //     void insert_event(event *new_event) {
