@@ -1,120 +1,4 @@
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <time.h>
-// #include <cmocka.h>
-// #include <GLUT/glut.h>
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-
-
-#ifndef BOARDSIZE
-#define BOARDSIZE 1000
-#endif
-
-#ifndef RANDMAX
-#define RANDMAX 5
-#endif
-
-#ifndef RANDMIN
-#define RANDMIN 0
-#endif
-
-#ifndef EDGE
-#define EDGE 1
-#endif
-
-#ifndef COMM
-#define COMM 3
-#endif
-
-#ifndef opengl
-#define opengl false
-#endif
-
-#ifndef slow
-#define slow false
-#endif
-
-#ifndef smooth
-#define smooth false
-#endif
-
-#ifndef SEED
-#define SEED 0
-#endif
-
-#ifndef MAXTIME
-#define MAXTIME 1000000
-#endif
-
-#ifndef RADIUS
-#define RADIUS 250
-#endif
-
-
-typedef struct node{
-    double x;
-    double y;
-    double vx;
-    double vy;
-} node;
-
-typedef struct event {
-    node *point1;
-    node *point2;
-    double timeOfEvent;
-    int type;
-    int wall;
-    bool valid;
-    struct event *next;
-    struct event *prev;
-} event;
-
-typedef struct {
-    float time;
-    int edge;
-} edgeCol;
-
-typedef struct {
-    float time;
-    int phase;
-} transition;
-
-edgeCol edgeCollision;
-transition transitionPhase;
-
-event *HEAD = NULL;
-event *TAIL = NULL;
-
-node *point1, *point2;
-int quenlength = 0;
-int statCounter = 0;
-int counter2 =0;
-int counter3 =0;
-int counter4 = 0;
-// current time of the simulation
-double currentTime = 0;
-bool inRange;
-double lastTransition = 0;
-double totalInRange = 0;
-
-//Function prototypes
-void test();
-void ttoedge(node *p);
-void bounce(node *p, int edge);
-double distance(node *p1, node *p2);
-void init();
-void remove_event(event *event);
-void insert_event(event *new_event);
-bool pop_event();
-void create_event(int type);
-double ttotrans();
-void statistics(double t);
+#include "sim.h"
 
 void drawFilledCircle(GLfloat x, GLfloat y, GLfloat radius){
 	int i;
@@ -210,7 +94,7 @@ int main(int argc, char const *argv[]) {
     } else {
         int seed = time(NULL);
         // int seed = 1487556356;
-        printf("%d\n", seed);
+        printf("Random seed: %d\n", seed);
         srand(seed);
     }
 
@@ -226,9 +110,9 @@ int main(int argc, char const *argv[]) {
     // psy.swansea.ac.uk/staff/carter/gnuplot/gnuplot_frequency.htm -> amazing!
     fprintf(f, "set term png; "
     "set out 'frequency.png'\n"
-    "set title 'frequency of in range time'\n"
-    "set xlabel 'time'\n"
-    "set ylabel 'frequency'\n"
+    "set title 'Frequency Histogram of Node Encounter Duration'\n"
+    "set xlabel 'Time spent in Range (simulated seconds)'\n"
+    "set ylabel 'Frequency of Duration'\n"
     "set boxwidth 5 absolute\n"
     "set style fill solid 1.0 noborder\n"
     // "binwidth=10\n"
@@ -270,7 +154,7 @@ int main(int argc, char const *argv[]) {
             printf("Ran out after %d events\n", counter);
             exit(1);
         }
-        printf("simulation complete. Ran for %fs completing %d events\n", currentTime, counter);
+        printf("simulation complete. Ran for %fs completing %d events and averaging %.2f%% in range\n", currentTime, counter, (totalInRange/currentTime)*100);
         // printf("%d\n", statCounter);
         // printf("%d phase chnage, %d skipped, %d type3\n", counter2, counter3, counter4);
         // if (pop_event()) {
@@ -474,22 +358,22 @@ bool pop_event() {
     // print_queue();
     // no evnet to pop
     if (distance(point1, point2) > (RADIUS +1) && inRange && HEAD->type != 3) {
-        printf("shit went south: %d\n", HEAD->type);
-        sleep(10);
+        printf("Range error: outside\n");
+        // sleep(10);
         exit(1);
     }
     if (distance(point1, point2) < (RADIUS - 1) && !inRange && HEAD->type != 3) {
-        printf("shit went north: %d\n", HEAD->type);
-        sleep(10);
+        printf("Range error: inside\n");
+        // sleep(10);
         exit(1);
     }
     if (HEAD == NULL) return false;
     update();
     if (point1->x < -10 || point1->y < -10 || point2->x < -10 || point2->y > (BOARDSIZE + 10) || point1->x > (BOARDSIZE + 10) || point1->y > (BOARDSIZE + 10) || point2->x > (BOARDSIZE + 10) || point2->y > (BOARDSIZE + 10)) {
-        printf("\nnode %d collides with wall %d\n", HEAD->type, HEAD->wall);
+        printf("\nNODE LEFT AREA\nnode %d collides with wall %d\n", HEAD->type, HEAD->wall);
         printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
         printf("\t\tvx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
-        exit(0);
+        exit(1);
     }
     currentTime = HEAD->timeOfEvent;
     if (HEAD->type != 0 || ((int)currentTime % 100 == 0)) {
