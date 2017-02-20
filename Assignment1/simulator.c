@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 // #include <cmocka.h>
 // #include <GLUT/glut.h>
 #ifdef __APPLE__
@@ -17,6 +18,10 @@
 
 #ifndef RANDMAX
 #define RANDMAX 5
+#endif
+
+#ifndef RANDMIN
+#define RANDMIN 0
 #endif
 
 #ifndef EDGE
@@ -37,6 +42,18 @@
 
 #ifndef smooth
 #define smooth false
+#endif
+
+#ifndef SEED
+#define SEED 0
+#endif
+
+#ifndef MAXTIME
+#define MAXTIME 1000000
+#endif
+
+#ifndef RADIUS
+#define RADIUS 250
 #endif
 
 
@@ -175,19 +192,27 @@ void renderScene(void) {
         // break;
     } else {
         printf("Ran out after %d events\n", counter);
-        exit(0);
+        exit(1);
 
+    }
+    if (currentTime > MAXTIME) {
+        exit(0);
     }
 
 	glutSwapBuffers();
 }
 FILE *f;
 int main(int argc, char const *argv[]) {
-    int maxTime = 10000000;
-    int seed = time(NULL);
-    // int seed = 1487556356;
-    printf("%d\n", seed);
-    srand(seed);
+    // int maxTime = 10000000;
+    // exit(0);
+    if (SEED) {
+        srand(SEED);
+    } else {
+        int seed = time(NULL);
+        // int seed = 1487556356;
+        printf("%d\n", seed);
+        srand(seed);
+    }
 
 
     // f = popen("gnuplot", "w");
@@ -238,16 +263,16 @@ int main(int argc, char const *argv[]) {
         // enter GLUT event processing cycle
         glutMainLoop();
     } else {
-        while (pop_event() && currentTime < maxTime) {
+        while (pop_event() && currentTime < MAXTIME) {
             counter ++;
         }
-        if (currentTime < maxTime) {
+        if (currentTime < MAXTIME) {
             printf("Ran out after %d events\n", counter);
-            exit(0);
+            exit(1);
         }
-        printf("simulation complete. Ran for %ds completing %d events\n", maxTime, counter);
-        printf("%d\n", statCounter);
-        printf("%d phase chnage, %d skipped, %d type3\n", counter2, counter3, counter4);
+        printf("simulation complete. Ran for %fs completing %d events\n", currentTime, counter);
+        // printf("%d\n", statCounter);
+        // printf("%d phase chnage, %d skipped, %d type3\n", counter2, counter3, counter4);
         // if (pop_event()) {
         //     // sleep(1);
         //     // break;
@@ -286,9 +311,10 @@ void test() {
 }
 double randr(int a) {
     double random = 0;
-    while (random == 0) {
+    while (random <= RANDMIN) {
         random = (double)(((double)rand()/(double)RAND_MAX) * (double)a);
     }
+    // printf("%f\n", random);
     return random;
 }
 
@@ -310,7 +336,7 @@ void init() {
     // printf("init:: x1: %f, y1: %f, x2: %f, y2: %f,",point1->x, point1->y,  point2->x,  point2->y);
     // printf("vx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
 
-    if (distance(point1, point2) < 250) {
+    if (distance(point1, point2) < RADIUS) {
         inRange = true;
     }
 
@@ -447,14 +473,19 @@ bool pop_event() {
     // printf("QUEUE LENGTH%d\n", quenlength);
     // print_queue();
     // no evnet to pop
-    if (distance(point1, point2) > 251 && inRange && HEAD->type != 3) {
+    if (distance(point1, point2) > (RADIUS +1) && inRange && HEAD->type != 3) {
         printf("shit went south: %d\n", HEAD->type);
+        sleep(10);
+        exit(1);
+    }
+    if (distance(point1, point2) < (RADIUS - 1) && !inRange && HEAD->type != 3) {
+        printf("shit went north: %d\n", HEAD->type);
         sleep(10);
         exit(1);
     }
     if (HEAD == NULL) return false;
     update();
-    if (point1->x < -10 || point1->y < -10 || point2->x < -10 || point2->y > 1010 || point1->x > 1010 || point1->y > 1010 || point2->x > 1010 || point2->y > 1010) {
+    if (point1->x < -10 || point1->y < -10 || point2->x < -10 || point2->y > (BOARDSIZE + 10) || point1->x > (BOARDSIZE + 10) || point1->y > (BOARDSIZE + 10) || point2->x > (BOARDSIZE + 10) || point2->y > (BOARDSIZE + 10)) {
         printf("\nnode %d collides with wall %d\n", HEAD->type, HEAD->wall);
         printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
         printf("\t\tvx1: %f, vy1: %f, vx2: %f, vy2: %f\n",point1->vx, point1->vy,  point2->vx,  point2->vy);
@@ -463,7 +494,7 @@ bool pop_event() {
     currentTime = HEAD->timeOfEvent;
     if (HEAD->type != 0 || ((int)currentTime % 100 == 0)) {
 
-        printf("Time = %f\n", currentTime);
+        // printf("Time = %f\n", currentTime);
     }
     // printf("time: %f\n", currentTime);
 
@@ -561,7 +592,7 @@ void create_event(int type) {
         // printf("\n");
         // return;
     } else if (transition ==0) {
-        printf("shfkhasdT: %f\n", transition);
+        // printf("shfkhasdT: %f\n", transition);
 
     } else {
         if (HEAD->timeOfEvent > (transitionPhase.time + currentTime)) {
@@ -573,11 +604,11 @@ void create_event(int type) {
             new_event->valid = true;
             new_event->wall = transitionPhase.phase;
             new_event->timeOfEvent = currentTime + transitionPhase.time;
-            printf("Phase time: %f, next phase: %f\n", transitionPhase.time, new_event->timeOfEvent);
+            // printf("Phase time: %f, next phase: %f\n", transitionPhase.time, new_event->timeOfEvent);
             insert_event(new_event);
         } else {
             counter3++;
-            printf("type: %D in %fs instead of %f\n", HEAD->type, HEAD->timeOfEvent, transitionPhase.time +currentTime);
+            // printf("type: %D in %fs instead of %f\n", HEAD->type, HEAD->timeOfEvent, transitionPhase.time +currentTime);
         }
     }
     if ((currentTime + 1) < HEAD->timeOfEvent && smooth && opengl) {
@@ -590,39 +621,15 @@ void create_event(int type) {
 }
 
 
-        // this is the type of entering or exiting area of influence.
-        // for loop to determine if anything happens before a bounce
-        // printf("hi\n");
-
-    // double timeToTransition = ttotrans();
-    // // printf("hello\n");
-    // printf("T: %f", timeToTransition);
-    // if (timeToTransition <= 0.001) {
-    //     printf("\n");
-    //     return;
-    // } else {
-    //     if (HEAD->timeOfEvent > timeToTransition) {
-    //         printf("here\n");
-    //         event *new_event = malloc(sizeof(event));
-    //         new_event->type = 3;
-    //         new_event->valid = true;
-    //         new_event->timeOfEvent = currentTime + timeToTransition;
-    //         insert_event(new_event);
-    //     }
-    //
-    // }
-// }
-
-
 double ttotrans() {
-    double A, B, C, m, b, r, x, y, vx, vy, d, X, t;
+    double A, B, C, m, b, r, x, y, vx, vy, d, X;
     x = point2->x - point1->x;
     y = point2->y - point1->y;
     vx = point2->vx - point1->vx;
     vy = point2->vy - point1->vy;
     m = vy / vx;
     b = y - (m * x);
-    r = 250;
+    r = RADIUS;
     A = 1 + (m * m);
     B = 2 * m * b;
     C = (b * b) - (r * r);
@@ -633,26 +640,12 @@ double ttotrans() {
         // printf("yahooo\n");
     }
     if (d < 0.001) return -1;
-    // X = (-B + sqrt(d)) / (2 * A);
-    // if (X > 0) return X;
-    // printf("A:%f, B: %f, C:%f, %f\n", A,B,C,d);
-    // return X;
-    // double t1 = t = (X - x) / vx;
 
-    // X = (-B - sqrt(d)) / (2 * A);
-    // if (X > 0) return X;
-    // printf("A:%f, B: %f, C:%f, %f\n", A,B,C,d);
-    // return X;
-    // double t2 = (X - x) / vx;
-    // if (t1 < 0 && t2 < 0) {
-    //     return -1;
-    // }
     X = (-B - sqrt(d)) / (2 * A);
     double t1 = (X - x) / vx;
     X = (-B + sqrt(d)) / (2 * A);
     double t2 = (X - x) / vx;
 
-    // printf("t1:%f, t2:%f\n", t1,t2);
 
     if (t1 < 0.0001 && t2 < 0.0001) {
         return 0;
@@ -673,99 +666,19 @@ double ttotrans() {
     }
     if (t1*t2 >= 0.0f) {
         transitionPhase.phase = 1;
-        printf("positive:1\n");
+        // printf("positive:1\n");
     } else {
         transitionPhase.phase = 0;
-        printf("negative:0\n");
+        // printf("negative:0\n");
     }
-    // if (inRange) {
-    //     // printf("t1\n");
-    //     // X = (-B - sqrt(d)) / (2 * A);
-    //     // double t1 = (X - x) / vx;
-    //     transitionPhase.time =  t1;
-    //     transitionPhase.phase = 0;
-    // } else {
-    //     // printf("t2\n");
-    //     // X = (-B + sqrt(d)) / (2 * A);
-    //     transitionPhase.time =  t2;
-    //     transitionPhase.phase = 1;
-    // }
-    // transitionPhase.time = (X - x) / vx;
-    printf("phase change________________%f, %d_____________t1:%f, t2:%f\n", transitionPhase.time, transitionPhase.phase, t1, t2);
+
+    // printf("phase change________________%f, %d_____________t1:%f, t2:%f\n", transitionPhase.time, transitionPhase.phase, t1, t2);
     return 1;
     if (transitionPhase.time > 0.0001) {
         return 1;
     } else {
         return 0;
     }
-    // if (t > 0.000001 && (t1 <= t2 || t2< 0.000001)) {
-    //     printf("t1\n");
-    //     transitionPhase.time =  t;
-    //     // transitionPhase.phase = 0;
-    // } else if (t2 > 0.000001) {
-    //     printf("t2\n");
-    //     transitionPhase.time =  t;
-    //     // transitionPhase.phase = 1;
-    // } else {
-    //     printf("t-1\n");
-    //     // transitionPhase.time =  1;
-    //     return -1;
-    // }
-    // if (t > 0.0001) {
-    //     transitionPhase.phase = 1;
-    //     transitionPhase.time =  t;
-    // } else {
-    //     X =(-B - sqrt(d)) / (2 * A);
-    //     t = (X - x) / vx;
-    //     if (t > 0.0001) {
-    //         transitionPhase.phase = 0;
-    //         transitionPhase.time =  t;
-    //     } else {
-    //         return -1;
-    //
-    //     }
-    //
-    // }
-    return 1;
-    // printf("t1:%f, t2:%f\n", t1,t2);
-    // if (t1 > 0.000001 && (t1 <= t2 || t2< 0.000001)) {
-    //     printf("t1\n");
-    //     transitionPhase.time =  t1;
-    //     transitionPhase.phase = 0;
-    // } else if (t2 > 0.000001) {
-    //     printf("t2\n");
-    //     transitionPhase.time =  t2;
-    //     transitionPhase.phase = 1;
-    // } else {
-    //     printf("t-1\n");
-    //     // transitionPhase.time =  1;
-    //     return -1;
-    // }
-    // if (t > 0.0001) {
-    //     transitionPhase.phase = 1;
-    //     transitionPhase.time =  t;
-    // } else {
-    //     X =(-B - sqrt(d)) / (2 * A);
-    //     t = (X - x) / vx;
-    //     if (t > 0.0001) {
-    //         transitionPhase.phase = 0;
-    //         transitionPhase.time =  t;
-    //     } else {
-    //         return -1;
-    //
-    //     }
-    //
-    // }
-    // if (distance(point1, point2) > 250.00001) {
-    //     printf("1\n");
-    //     transitionPhase.phase = 1;
-    //     // X =(-B - sqrt(d)) / (2 * A);
-    // } else if (distance(point1, point2) < 249.9999)  {
-    //     printf("0\n");
-    //     transitionPhase.phase = 0;
-    //     // X = (-B + sqrt(d)) / (2 * A);
-    // }
-    return 1;
 }
 
 
