@@ -11,14 +11,14 @@ observedclients = []
 
 
 def print_socket(interface, mac, rssi):
-    message = str(datetime.datetime.utcnow()) + " " + str(interface) + " " + str(mac) + " " + str(rssi)
+    message = str(datetime.utcnow()) + " " + str(interface) + " " + str(mac) + " " + str(rssi)
     print message
     global s
     global a_lock
     with a_lock:
         s.send(message)
 def sniffmgmt(p):
-    print "world"
+    # print "world"
     # Define our tuple (an immutable list) of the 3 management frame
     # subtypes sent exclusively by clients. I got this list from Wireshark.
     stamgmtstypes = (0, 2, 4)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     t.daemon = True
     t.start()
     while True:
-        sleep(5)
+        time.sleep(5)
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
