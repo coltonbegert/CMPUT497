@@ -3,7 +3,7 @@
 import socket               # Import socket module
 import time
 import datetime
-import thread
+import threading
 from scapy.all import *
 # import wifi_sniffer
 
@@ -60,13 +60,17 @@ if __name__ == "__main__":
     # print (s.recv(1024))
     # s.send(b'ack')
     global a_lock
-    a_lock = thread.allocate_lock()
+    # a_lock = thread.allocate_lock()
+    a_lock = threading.RLock()
     # wifi_interface = "mon0"
     # thread.start_new_thread(sniff, (iface=wifi_interface, prn=sniffmgmt))
-    try:
-        thread.start_new_thread(start_wifi_sniff, ())
-    except:
-        print "massive failure"
+    # try:
+    #     thread.start_new_thread(start_wifi_sniff, ())
+    # except:
+    #     print "massive failure"
+
+    t = threading.Thread(target = start_wifi_sniff)
+    t.start()
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
