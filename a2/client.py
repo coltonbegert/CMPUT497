@@ -75,7 +75,8 @@ if __name__ == "__main__":
     t = threading.Thread(target = start_wifi_sniff)
     t.daemon = True
     t.start()
-    while True
+    while True:
+        sleep(5)
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
