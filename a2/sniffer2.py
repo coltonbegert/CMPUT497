@@ -1,3 +1,8 @@
+# Fantastic resource that I pulled most of this code from
+# https://pen-testing.sans.org/blog/2011/10/13/special-request-wireless-client-sniffing-with-scapy
+
+
+
 # The previous line ensures that this script is run under the context
 # of the Python interpreter. Next, import the Scapy functions:
 from scapy.all import *
@@ -8,7 +13,8 @@ interface = "mon0"
 # that we have already seen so we only print the address once per client.
 observedclients = []
 
-yannis = ["68:D9:3C:50:F8:5E", "6C:40:08:8A:20:52", "74:23:44:EB:BC:DF", "D0:7E:35:DB:1E:B0"]
+# yannis = ["68:D9:3C:50:F8:5E", "6C:40:08:8A:20:52", "74:23:44:EB:BC:DF", "D0:7E:35:DB:1E:B0"]
+
 # The sniffmgmt() function is called each time Scapy receives a packet
 # (we'll tell Scapy to use this function below with the sniff() function).
 # The packet that was sniffed is passed as the function argument, "p".
@@ -38,3 +44,5 @@ def sniffmgmt(p):
 # function, pointing to the monitor mode interface, and telling Scapy to call
 # the sniffmgmt() function for each packet received. Easy!
 sniff(iface=interface, prn=sniffmgmt)
+while True:
+    print(test)
