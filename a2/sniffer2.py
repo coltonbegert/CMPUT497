@@ -6,6 +6,8 @@
 # The previous line ensures that this script is run under the context
 # of the Python interpreter. Next, import the Scapy functions:
 from scapy.all import *
+import time
+import datetime
 # Define the interface name that we will be sniffing from, you can
 # change this if needed.
 interface = "mon0"
@@ -30,7 +32,9 @@ def sniffmgmt(p):
         if p.type == 0 and p.subtype in stamgmtstypes:
             extra = p.notdecoded
             rssi = -(256-ord(extra[-4:-3]))
-            print "WiFi signal strength:", rssi, "dBm of", p.addr2, p.info
+            # print "WiFi signal strength:", rssi, "dBm of", p.addr2, p.info
+            message = str(datetime.datetime.utcnow()) + " " + interface + " " + p.addr2 + " " + rssi
+            print message
             # We only want to print the MAC address of the client if it
             # hasn't already been observed. Check our list and if the
             # client address isn't present, print the address and then add
@@ -44,5 +48,5 @@ def sniffmgmt(p):
 # function, pointing to the monitor mode interface, and telling Scapy to call
 # the sniffmgmt() function for each packet received. Easy!
 sniff(iface=interface, prn=sniffmgmt)
-while True:
-    print(test)
+# while True:
+#     print(test)
