@@ -7,6 +7,9 @@ import threading
 from scapy.all import *
 # import wifi_sniffer
 
+observedclients = []
+
+
 def print_socket(interface, mac, rssi):
     message = str(datetime.datetime.utcnow()) + " " + str(interface) + " " + str(mac) + " " + str(rssi)
     print message
