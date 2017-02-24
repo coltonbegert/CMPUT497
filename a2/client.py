@@ -45,37 +45,42 @@ def sniffmgmt(p):
                 # print p.addr2
                 observedclients.append(p.addr2)
 
-global s
-s = socket.socket()         # Create a socket object
-host = socket.gethostname() # Get local machine name
-port = 6666                 # Reserve a port for your service.
+def start_wifi_sniff():
+    interface = "mon0"
+    sniff(iface=interface, prn=sniffmgmt)
+if __name__ == "__main__":
+    global s
+    s = socket.socket()         # Create a socket object
+    host = socket.gethostname() # Get local machine name
+    port = 6666                 # Reserve a port for your service.
 
-s.connect((host, port))
-# print (s.recv(1024))
-# s.send(b'ack')
-global a_lock
-a_lock = thread.allocate_lock()
-wifi_interface = "mon0"
-thread.start_new_thread(sniff, (iface=wifi_interface, prn=sniffmgmt))
-# with a_lock:
-#     message = ""
-#     currentTime = time.time()
-#     # message += datetime.datetime.strptime(time.time(), "YYYY-MM-DD HH:MM:SS.")
-#     message += str(datetime.datetime.utcnow())
-#     message += "\n"
-#     # message = bytes(str(message),"ascii")
-#     s.send(message)
-# print_socket("colton1", "12:34:56:78", -76)
+    s.connect((host, port))
+    # print (s.recv(1024))
+    # s.send(b'ack')
+    global a_lock
+    a_lock = thread.allocate_lock()
+    # wifi_interface = "mon0"
+    # thread.start_new_thread(sniff, (iface=wifi_interface, prn=sniffmgmt))
+    thread.start_new_thread(start_wifi_sniff)
+    # with a_lock:
+    #     message = ""
+    #     currentTime = time.time()
+    #     # message += datetime.datetime.strptime(time.time(), "YYYY-MM-DD HH:MM:SS.")
+    #     message += str(datetime.datetime.utcnow())
+    #     message += "\n"
+    #     # message = bytes(str(message),"ascii")
+    #     s.send(message)
+    # print_socket("colton1", "12:34:56:78", -76)
 
-# for i in range(1, 20):
-#     message = ""
-#     currentTime = time.time()
-#     # message += datetime.datetime.strptime(time.time(), "YYYY-MM-DD HH:MM:SS.")
-#     message += str(datetime.datetime.utcnow())
-#     message += "\n"
-#     # message = bytes(str(message),"ascii")
-#     s.send(message)
-# while True:
+    # for i in range(1, 20):
+    #     message = ""
+    #     currentTime = time.time()
+    #     # message += datetime.datetime.strptime(time.time(), "YYYY-MM-DD HH:MM:SS.")
+    #     message += str(datetime.datetime.utcnow())
+    #     message += "\n"
+    #     # message = bytes(str(message),"ascii")
+    #     s.send(message)
+    # while True:
 
-    # print(s.recv(1024))
-s.close()                     # Close the socket when done
+        # print(s.recv(1024))
+    s.close()                     # Close the socket when done
