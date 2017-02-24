@@ -39,8 +39,8 @@ def sniffmgmt(p):
             # hasn't already been observed. Check our list and if the
             # client address isn't present, print the address and then add
             # it to our list.
-            if p.addr2.upper() in yannis and 0:
-                print "YANNIS IS HERE GET DOWN" + p.addr2
+            # if p.addr2.upper() in yannis and 0:
+            #     print "YANNIS IS HERE GET DOWN" + p.addr2
             if p.addr2 not in observedclients and 0:
                 print p.addr2
                 observedclients.append(p.addr2)
