@@ -15,6 +15,7 @@ def print_socket(interface, mac, rssi):
     with a_lock:
         s.send(message)
 def sniffmgmt(p):
+    print "world"
     # Define our tuple (an immutable list) of the 3 management frame
     # subtypes sent exclusively by clients. I got this list from Wireshark.
     stamgmtstypes = (0, 2, 4)
@@ -33,7 +34,7 @@ def sniffmgmt(p):
             # global a_lock
             # with a_lock:
             #     s.send(message)
-            print_socket("wlan0", p.addr2, rssi)
+            # print_socket("wlan0", p.addr2, rssi)
 
             # We only want to print the MAC address of the client if it
             # hasn't already been observed. Check our list and if the
@@ -46,6 +47,7 @@ def sniffmgmt(p):
                 observedclients.append(p.addr2)
 
 def start_wifi_sniff():
+    print "hello"
     interface = "mon0"
     sniff(iface=interface, prn=sniffmgmt)
 if __name__ == "__main__":
