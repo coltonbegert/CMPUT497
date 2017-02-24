@@ -37,7 +37,7 @@ def sniffmgmt(p):
             # global a_lock
             # with a_lock:
             #     s.send(message)
-            # print_socket("wlan0", p.addr2, rssi)
+            print_socket("wlan0", p.addr2, rssi)
 
             # We only want to print the MAC address of the client if it
             # hasn't already been observed. Check our list and if the
@@ -75,6 +75,7 @@ if __name__ == "__main__":
     t = threading.Thread(target = start_wifi_sniff)
     t.daemon = True
     t.start()
+    while True
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
