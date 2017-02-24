@@ -33,7 +33,7 @@ def sniffmgmt(p):
             extra = p.notdecoded
             rssi = -(256-ord(extra[-4:-3]))
             # print "WiFi signal strength:", rssi, "dBm of", p.addr2, p.info
-            message = str(datetime.datetime.utcnow()) + " " + interface + " " + p.addr2 + " " + rssi
+            message = str(datetime.datetime.utcnow()) + " " + interface + " " + str(p.addr2) + " " + str(rssi)
             print message
             # We only want to print the MAC address of the client if it
             # hasn't already been observed. Check our list and if the
