@@ -5,7 +5,7 @@ import time
 import datetime
 import thread
 from scapy.all import *
-import wifi_sniffer
+# import wifi_sniffer
 
 def print_socket(interface, mac, rssi):
     message = str(datetime.datetime.utcnow()) + " " + str(interface) + " " + str(mac) + " " + str(rssi)
@@ -61,7 +61,10 @@ if __name__ == "__main__":
     a_lock = thread.allocate_lock()
     # wifi_interface = "mon0"
     # thread.start_new_thread(sniff, (iface=wifi_interface, prn=sniffmgmt))
-    thread.start_new_thread(start_wifi_sniff)
+    try:
+        thread.start_new_thread(start_wifi_sniff, ())
+    except:
+        print "massive failure"
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
