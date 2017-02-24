@@ -73,6 +73,7 @@ if __name__ == "__main__":
     #     print "massive failure"
 
     t = threading.Thread(target = start_wifi_sniff)
+    t.daemon = True
     t.start()
     # with a_lock:
     #     message = ""
