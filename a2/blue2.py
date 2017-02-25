@@ -9,7 +9,8 @@ while True:
     print "scan done"
     print devices.items()
     for dev in devices:
-        print dev
+        for i in dev:
+            print i
 
 # target_name = "My Phone"
 # target_address = None
