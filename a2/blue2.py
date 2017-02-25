@@ -8,9 +8,10 @@ while True:
 
     print "scan done"
     print devices.items()
-    for address, name in devices:
-        print address, name
-        request = GATTRequester(address)
+    for dev in devices:
+        print dev
+        print dev[0]
+        request = GATTRequester(dev[0])
         response = GATTResponse()
         while not response.received():
             time.sleep(0.1)
