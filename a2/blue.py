@@ -90,6 +90,7 @@ def device_inquiry_with_with_rssi(sock):
     results = []
 
     done = False
+    print bluez.EVT_INQUIRY_RESULT_WITH_RSSI
     while not done:
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
