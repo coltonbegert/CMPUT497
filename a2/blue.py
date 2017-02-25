@@ -18,10 +18,11 @@ class Beacon(object):
         return ret
 
 service = BeaconService("hci1")
-devices = service.scan(2)
+while True:
+    devices = service.scan(2)
 
-for address, data in list(devices.items()):
-    b = Beacon(data, address)
-    print(b)
+    for address, data in list(devices.items()):
+        b = Beacon(data, address)
+        print(b)
 
-print("Done.")
+    print("Done.")
