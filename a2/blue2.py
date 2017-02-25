@@ -5,6 +5,9 @@ from gattlib import DiscoveryService
 service = DiscoveryService("hci1")
 devices = service.discover(2)
 
+for dev in devices:
+    print dev
+
 # target_name = "My Phone"
 # target_address = None
 #
