@@ -106,7 +106,7 @@ def device_inquiry_with_with_rssi(sock):
                 print("[%s] RSSI: [%d]" % (addr, rssi))
         elif event == bluez.EVT_INQUIRY_COMPLETE:
             print "hi2"
-            done = True
+            # done = True
         elif event == bluez.EVT_CMD_STATUS:
             print "hi3"
             status, ncmd, opcode = struct.unpack("BBH", pkt[3:7])
