@@ -106,7 +106,7 @@ def device_inquiry_with_with_rssi(sock):
                 print("[%s] RSSI: [%d]" % (addr, rssi))
         elif event == bluez.EVT_INQUIRY_COMPLETE:
             print "hi2"
-            # done = True
+            done = True
         elif event == bluez.EVT_CMD_STATUS:
             print "hi3"
             status, ncmd, opcode = struct.unpack("BBH", pkt[3:7])
@@ -132,7 +132,7 @@ def device_inquiry_with_with_rssi(sock):
 
     return results
 
-dev_id = 0
+dev_id = 1
 try:
     sock = bluez.hci_open_dev(dev_id)
 except:
