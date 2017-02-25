@@ -10,8 +10,9 @@ while True:
     print devices.items()
     for dev in devices:
         print dev
-        print dev[0]
-        request = GATTRequester(dev[0])
+        # address = dev[0]
+        # print address
+        request = GATTRequester(dev)
         response = GATTResponse()
         while not response.received():
             time.sleep(0.1)
