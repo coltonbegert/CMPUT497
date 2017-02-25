@@ -17,8 +17,8 @@ class Beacon(object):
                         MINOR=self._minor, POWER=self._power, RSSI=self._rssi)
         return ret
 
-service = BeaconService()
-devices = service.scan(1)
+service = BeaconService("hci1")
+devices = service.scan(2)
 
 for address, data in list(devices.items()):
     b = Beacon(data, address)
