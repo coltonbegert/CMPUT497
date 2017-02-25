@@ -2,7 +2,7 @@
 # import bluetooth
 from gattlib import DiscoveryService
 
-service = DiscoveryService("hci0")
+service = DiscoveryService("hci1")
 devices = service.discover(2)
 
 # target_name = "My Phone"
