@@ -2,12 +2,14 @@
 # import bluetooth
 from gattlib import DiscoveryService
 
-service = DiscoveryService("hci1")
-devices = service.discover(2)
+while True:
+    service = DiscoveryService("hci1")
+    devices = service.discover(2)
 
-print devices.items()
-for dev in devices:
-    print dev
+    print "scan done"
+    print devices.items()
+    for dev in devices:
+        print dev
 
 # target_name = "My Phone"
 # target_address = None
