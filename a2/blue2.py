@@ -8,9 +8,10 @@ while True:
 
     print "scan done"
     print devices.items()
-    for dev in devices:
-        for i in dev:
-            print i
+    for address, name, rssi in list(devices.items()):
+        print address, name, rssi
+        # for i in dev:
+        #     print i
 
 # target_name = "My Phone"
 # target_address = None
