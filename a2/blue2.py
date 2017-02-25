@@ -7,7 +7,7 @@ while True:
     devices = service.discover(2)
 
     print "scan done"
-    print devices.items()
+    # print devices.items()
     for dev in devices:
         print dev
         # address = dev[0]
