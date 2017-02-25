@@ -1,6 +1,6 @@
 
 # import bluetooth
-from gattlib import DiscoveryService
+from gattlib import DiscoveryService, GATTRequester, GATTResponse
 
 while True:
     service = DiscoveryService("hci1")
@@ -8,8 +8,13 @@ while True:
 
     print "scan done"
     print devices.items()
-    for address, name, rssi in list(devices.items()):
-        print address, name, rssi
+    for address, name in devices:
+        print address, name
+        request = GATTRequester(address)
+        response = GATTResponse()
+        while not response.received():
+            time.sleep(0.1)
+        print response
         # for i in dev:
         #     print i
 
