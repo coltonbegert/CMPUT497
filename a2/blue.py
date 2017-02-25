@@ -95,6 +95,7 @@ def device_inquiry_with_with_rssi(sock):
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
+            print "hi1"
             pkt = pkt[3:]
             nrsp = bluetooth.get_byte(pkt[0])
             for i in range(nrsp):
@@ -104,14 +105,17 @@ def device_inquiry_with_with_rssi(sock):
                 results.append( ( addr, rssi ) )
                 print("[%s] RSSI: [%d]" % (addr, rssi))
         elif event == bluez.EVT_INQUIRY_COMPLETE:
+            print "hi2"
             done = True
         elif event == bluez.EVT_CMD_STATUS:
+            print "hi3"
             status, ncmd, opcode = struct.unpack("BBH", pkt[3:7])
             if status != 0:
                 print("uh oh...")
                 printpacket(pkt[3:7])
                 done = True
         elif event == bluez.EVT_INQUIRY_RESULT:
+            print "hi4"
             pkt = pkt[3:]
             nrsp = bluetooth.get_byte(pkt[0])
             for i in range(nrsp):
