@@ -5,6 +5,7 @@ from gattlib import DiscoveryService
 service = DiscoveryService("hci1")
 devices = service.discover(2)
 
+print devices.items()
 for dev in devices:
     print dev
 
