@@ -1,63 +1,27 @@
-import sys
-import os
-import struct
-from ctypes import (CDLL, get_errno)
-from ctypes.util import find_library
-from socket import (
-    socket,
-    AF_BLUETOOTH,
-    SOCK_RAW,
-    BTPROTO_HCI,
-    SOL_HCI,
-    HCI_FILTER,
-)
+from bluetooth.ble import BeaconService
 
-if not os.geteuid() == 0:
-    sys.exit("script only works as root")
+class Beacon(object):
 
-btlib = find_library("bluetooth")
-if not btlib:
-    raise Exception(
-        "Can't find required bluetooth libraries"
-        " (need to install bluez)"
-    )
-bluez = CDLL(btlib, use_errno=True)
+    def __init__(self, data, address):
+        self._uuid = data[0]
+        self._major = data[1]
+        self._minor = data[2]
+        self._power = data[3]
+        self._rssi = data[4]
+        self._address = address
 
-dev_id = 1
+    def __str__(self):
+        ret = "Beacon: address:{ADDR} uuid:{UUID} major:{MAJOR}"\
+                " minor:{MINOR} txpower:{POWER} rssi:{RSSI}"\
+                .format(ADDR=self._address, UUID=self._uuid, MAJOR=self._major,
+                        MINOR=self._minor, POWER=self._power, RSSI=self._rssi)
+        return ret
 
-sock = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
-sock.bind((dev_id,))
+service = BeaconService()
+devices = service.scan(2)
 
-err = bluez.hci_le_set_scan_parameters(sock.fileno(), 0, 0x10, 0x10, 0, 0, 1000);
-if err < 0:
-    raise Exception("Set scan parameters failed")
-    # occurs when scanning is still enabled from previous call
+for address, data in list(devices.items()):
+    b = Beacon(data, address)
+    print(b)
 
-# allows LE advertising events
-hci_filter = struct.pack(
-    "<IQH",
-    0x00000010,
-    0x4000000000000000,
-    0
-)
-sock.setsockopt(SOL_HCI, HCI_FILTER, hci_filter)
-
-err = bluez.hci_le_set_scan_enable(
-    sock.fileno(),
-    1,  # 1 - turn on;  0 - turn off
-    0, # 0-filtering disabled, 1-filter out duplicates
-    1000  # timeout
-)
-if err < 0:
-    errnum = get_errno()
-    raise Exception("{} {}".format(
-        errno.errorcode[errnum],
-        os.strerror(errnum)
-    ))
-
-while True:
-    data = sock.recv(1024)
-    # print bluetooth address from LE Advert. packet
-    #print(':'.join("{0:02x}".format(x) for x in data[12:6:-1]))
-    print( ':'.join(x.encode('hex') for x in data[17]) );
-    print( int(data[17].encode('hex') , 16 ) );
+print("Done.")
