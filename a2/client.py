@@ -99,9 +99,9 @@ if __name__ == "__main__":
 
         with a_lock:
             message = s.recv(1024)
-            if not message: break
-            if len(message) > 0:
-                print(message.decode("ascii"))
+        if not message: break
+        if len(message) > 0:
+            print(message.decode("ascii"))
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
