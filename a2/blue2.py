@@ -39,7 +39,7 @@ class ScanPrint(btle.DefaultDelegate):
         #     print ('\t(no data)')
         # print
 while True:
-    scanner = btle.Scanner(1).withDelegate()
+    scanner = btle.Scanner(1).withDelegate(ScanPrint())
     devices = scanner.scan(arg.timeout)
 
 # while True:
