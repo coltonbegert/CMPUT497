@@ -33,9 +33,9 @@ while True:
     t.daemon = True
     t.start()
 
-    t2 = threading.Thread(target=get_input)
-    t2.daemon = True
-    t2.start()
+    # t2 = threading.Thread(target=get_input)
+    # t2.daemon = True
+    # t2.start()
 
 
     # var = raw_input()
