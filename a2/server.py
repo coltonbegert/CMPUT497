@@ -27,18 +27,18 @@ s.bind((host, port))        # Bind to the port
 s.listen(5)                 # Now wait for client connection.
 counter = 0
 while True:
-   c, addr = s.accept()     # Establish connection with client.
-   print ('Got connection from', addr)
-   t = threading.Thread(target=print_messages)
-   t.daemon = True
-   t.start()
+    c, addr = s.accept()     # Establish connection with client.
+    print ('Got connection from', addr)
+    t = threading.Thread(target=print_messages)
+    t.daemon = True
+    t.start()
 
     t2 = threading.Thread(target=get_input)
     t2.daemon = True
     t2.start()
 
 
-   # var = raw_input()
-   # c.send(b'test')
-   # print(c.recv(512))
-   c.close()                # Close the connection
+    # var = raw_input()
+    # c.send(b'test')
+    # print(c.recv(512))
+    c.close()                # Close the connection
