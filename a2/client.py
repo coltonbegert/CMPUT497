@@ -92,8 +92,16 @@ if __name__ == "__main__":
     t2 = threading.Thread(target = start_ble_sniff)
     t2.daemon = True
     t2.start()
+    # while True:
+    #     time.sleep(5)
     while True:
-        time.sleep(5)
+     #   c.send(b'test')
+        global a_lock
+        with a_lock:
+            message = s.recv(1024)
+            if not message: break
+            if len(message) > 0:
+                print(message.decode("ascii"))
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
