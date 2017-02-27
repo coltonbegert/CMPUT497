@@ -29,7 +29,7 @@ class ScanPrint(btle.DefaultDelegate):
         #            dev.rssi,
         #            ('' if dev.connectable else '(not connectable)') )
         #       )
-        print datetime.datetime.utcnow() + " " + str("hci1") + " " + str(dev.addr) + " " + str(dev.rssi)
+        print " " + str("hci1") + " " + str(dev.addr) + " " + str(dev.rssi)
         # for (sdid, desc, val) in dev.getScanData():
         #     if sdid in [8,9]:
         #         print ('\t' + desc + ': \'' + ANSI_CYAN + val + ANSI_OFF + '\'')
