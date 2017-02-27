@@ -97,8 +97,8 @@ if __name__ == "__main__":
     while True:
      #   c.send(b'test')
 
-        with a_lock:
-            message = s.recv(1024)
+        # with a_lock:
+        message = s.recv(1024)
         if not message: break
         if len(message) > 0:
             print(message.decode("ascii"))
