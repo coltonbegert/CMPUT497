@@ -5,6 +5,7 @@ import time
 import datetime
 import threading
 from scapy.all import *
+from bluepy import btle
 # import wifi_sniffer
 
 observedclients = []
@@ -12,11 +13,24 @@ observedclients = []
 
 def print_socket(interface, mac, rssi):
     message = str(datetime.utcnow()) + " " + str(interface) + " " + str(mac) + " " + str(rssi)
-    print message
+    # print message
     global s
     global a_lock
     with a_lock:
         s.send(message)
+
+class ScanPrint(btle.DefaultDelegate):
+    def __init__(self):
+        btle.DefaultDelegate.__init__(self)
+        # self.opts = opts
+
+    def handleDiscovery(self, dev, isNewDev, isNewData):
+        print_socket("hci1", dev.mac, dev.rssi)
+
+def start_ble_sniff():
+    scanner = btle.Scanner(1).withDelegate(ScanPrint())
+    devices = scanner.scan(0)
+
 def sniffmgmt(p):
     # print "world"
     # Define our tuple (an immutable list) of the 3 management frame
@@ -75,6 +89,9 @@ if __name__ == "__main__":
     t = threading.Thread(target = start_wifi_sniff)
     t.daemon = True
     t.start()
+    t2 = threading.Thread(target = start_ble_sniff)
+    t2.daemon = True
+    t2.start()
     while True:
         time.sleep(5)
     # with a_lock:
