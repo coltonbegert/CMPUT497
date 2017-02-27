@@ -38,9 +38,9 @@ class ScanPrint(btle.DefaultDelegate):
         # if not dev.scanData:
         #     print ('\t(no data)')
         # print
-while True:
-    scanner = btle.Scanner(1).withDelegate(ScanPrint())
-    devices = scanner.scan(0)
+# while True:
+scanner = btle.Scanner(1).withDelegate(ScanPrint())
+devices = scanner.scan(0)
 
 # while True:
 #     service = DiscoveryService("hci1")
