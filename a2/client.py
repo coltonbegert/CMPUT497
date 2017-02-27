@@ -96,7 +96,7 @@ if __name__ == "__main__":
     #     time.sleep(5)
     while True:
      #   c.send(b'test')
-        global a_lock
+
         with a_lock:
             message = s.recv(1024)
             if not message: break
