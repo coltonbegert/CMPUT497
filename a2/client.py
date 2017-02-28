@@ -9,6 +9,8 @@ from bluepy import btle
 # import wifi_sniffer
 
 observedclients = []
+hci = 0
+mon = 0
 
 
 def print_socket(interface, mac, rssi):
@@ -28,7 +30,7 @@ class ScanPrint(btle.DefaultDelegate):
         print_socket("hci1", dev.addr, dev.rssi)
 
 def start_ble_sniff():
-    scanner = btle.Scanner(1).withDelegate(ScanPrint())
+    scanner = btle.Scanner(hci).withDelegate(ScanPrint())
     devices = scanner.scan(0)
 
 def sniffmgmt(p):
@@ -65,7 +67,7 @@ def sniffmgmt(p):
 
 def start_wifi_sniff():
     print "hello"
-    interface = "mon0"
+    interface = str("mon" + mon)
     sniff(iface=interface, prn=sniffmgmt)
 if __name__ == "__main__":
     global s
