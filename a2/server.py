@@ -22,9 +22,12 @@ while True:
    counter = 0
    while True:
     #   c.send(b'test')
-        data = sys.stdin.readlines()
-        if len(data) > 0:
+        for data in sys.stdin:
+            print(data)
             c.send(data)
+        # data = sys.stdin
+        # if len(data) > 0:
+            # c.send(data)
         # counter += 1
         message = c.recv(1024)
         if not message: break
