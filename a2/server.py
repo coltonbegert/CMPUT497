@@ -6,10 +6,11 @@ import socket               # Import socket module
 import threading
 import sys
 #
-def get_input():
+def get_input(c):
     while True:
-        message = input()
+        message = raw_input()
         print (message)
+        c.send(message)
 
 
 s = socket.socket()         # Create a socket object
@@ -22,7 +23,7 @@ while True:
    c, addr = s.accept()     # Establish connection with client.
    print ('Got connection from', addr)
    counter = 0
-   t = threading.Thread(target = get_input)
+   t = threading.Thread(target = get_input, args=([c]))
    t.daemon = True
    t.start()
    while True:
