@@ -36,6 +36,8 @@
 #define opengl false
 #endif
 
+// this adds a 1 second sleep between frames to slow things down
+// line 74 of simulator.c will make that longer or shorter
 #ifndef slow
 #define slow false
 #endif

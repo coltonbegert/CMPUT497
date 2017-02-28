@@ -134,6 +134,7 @@ int main(int argc, char const *argv[]) {
     init();
     // bool opengl = false;
     if (opengl) {
+		// Basic glut setup
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
         glutInitWindowPosition(100,100);
@@ -147,6 +148,7 @@ int main(int argc, char const *argv[]) {
         // enter GLUT event processing cycle
         glutMainLoop();
     } else {
+		// run in command line mode. pop event from queue until simualtion is over
         while (pop_event() && currentTime < MAXTIME) {
             counter ++;
         }
@@ -155,29 +157,9 @@ int main(int argc, char const *argv[]) {
             exit(1);
         }
         printf("simulation complete. Ran for %fs completing %d events and averaging %.2f%% in range\n", currentTime, counter, (totalInRange/currentTime)*100);
-        // printf("%d\n", statCounter);
-        // printf("%d phase chnage, %d skipped, %d type3\n", counter2, counter3, counter4);
-        // if (pop_event()) {
-        //     // sleep(1);
-        //     // break;
-        // } else {
-        //
-        // }
+
     }
-    // simulation will run for 1000 events
-    // while (counter++ < 500000) {
-    //     printf("%d\n", counter);
-    //     if (!pop_event()) {
-    //         // no more events
-    //         printf("Ran out after %d events\n", counter);
-    //         break;
-    //     }
-    // }
-    // printf("%f\n", 100*totalInRange/currentTime);
 
-    // node pointArray[2];
-
-    // test();
 
     return 0;
 }
@@ -193,6 +175,7 @@ void test() {
     // printf("%f\n", ttoedge(point));
 
 }
+// Function to generate floating point numbers in the specified range
 double randr(int a) {
     double random = 0;
     while (random <= RANDMIN) {
@@ -201,7 +184,8 @@ double randr(int a) {
     // printf("%f\n", random);
     return random;
 }
-
+// initializes the points with random positions and velocities. Creates inital events on
+// the priority queue
 void init() {
     point1 = malloc(sizeof(node));
     point2 = malloc(sizeof(node));
@@ -230,7 +214,9 @@ void init() {
 }
 
 
-
+// This calculates the time to the edge as the min of the time to hit all 4 walls.
+// Negative times excluded. simple t = d/v
+// the return object is a struct with a time and a wall
 void ttoedge(node *p) {
     // double minTime = 1.0/0.0; // positive infinity
     double minTime = INFINITY;
@@ -305,36 +291,14 @@ void bounce(node *p, int edge) {
         break;
 
     }
-    // bool changed = false;
-    // if(p->x <= 0.01) {
-    //     p->vx = randr(RANDMAX);
-    //     p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-    //     changed = true;
-    // }
-    // if (p->x >= BOARDSIZE-0.01) {
-    //     p->vx = -randr(RANDMAX);
-    //     p->vy = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-    //     changed = true;
-    // }
-    // if(p->y <= 0.01) {
-    //     p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-    //     p->vy = randr(RANDMAX);
-    //     changed = true;
-    // }
-    // if (p->y >= BOARDSIZE-0.01) {
-    //     p->vx = ((rand()%2) ? -1 : 1) * randr(RANDMAX);
-    //     p->vy = -randr(RANDMAX);
-    //     changed = true;
-    // }
-    // if (changed) return;
-    // // printf("fperror\n");
+
 }
 
 // Returns the euclidea distance between two nodes
 double distance(node *p1, node *p2) {
     return sqrt(pow((p1->x-p2->x), 2) + pow((p1->y - p2->y), 2));
 }
-
+// this moves the nodes for the time that was skipped due to simulation
 void update() {
     // printf("update:: x1: %f, x2: %f, y1: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
     double elapsedTime = HEAD->timeOfEvent - currentTime;
@@ -344,8 +308,8 @@ void update() {
     point2->y += elapsedTime*point2->vy;
     // printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
 }
-// Remove and Item from the queue and handle it
 
+// used for debugging
 void print_queue() {
     printf("QUEUE::");
     for (event *e = HEAD;e !=NULL ; e = e->next) {
@@ -353,10 +317,14 @@ void print_queue() {
     }
     printf("end\n");
 }
+// pop event is the main function of the simulation. It pops an event from the queue
+// and handles it appropriately.
 bool pop_event() {
     // printf("QUEUE LENGTH%d\n", quenlength);
     // print_queue();
     // no evnet to pop
+
+	// ERROR CHECKING
     if (distance(point1, point2) > (RADIUS +1) && inRange && HEAD->type != 3) {
         printf("Range error: outside\n");
         // sleep(10);
@@ -367,8 +335,10 @@ bool pop_event() {
         // sleep(10);
         exit(1);
     }
+	// no more events
     if (HEAD == NULL) return false;
     update();
+	// ERROR checking
     if (point1->x < -10 || point1->y < -10 || point2->x < -10 || point2->y > (BOARDSIZE + 10) || point1->x > (BOARDSIZE + 10) || point1->y > (BOARDSIZE + 10) || point2->x > (BOARDSIZE + 10) || point2->y > (BOARDSIZE + 10)) {
         printf("\nNODE LEFT AREA\nnode %d collides with wall %d\n", HEAD->type, HEAD->wall);
         printf("update:: x1: %f, y1: %f, x2: %f, y2: %f\n",point1->x, point1->y,  point2->x,  point2->y);
@@ -376,6 +346,7 @@ bool pop_event() {
         exit(1);
     }
     currentTime = HEAD->timeOfEvent;
+	// Events of type 0 are for opengl rendering. They only cause updates to force smooth redering
     if (HEAD->type != 0 || ((int)currentTime % 100 == 0)) {
 
         // printf("Time = %f\n", currentTime);
@@ -395,21 +366,7 @@ bool pop_event() {
 
     } else if (eventType == 3) {
         counter4++;
-        // if (HEAD->wall != inRange) {
-        //     if (HEAD-> wall == 0) {
-        //         totalInRange += currentTime - lastTransition;
-        //         statistics(currentTime - lastTransition);
-        //
-        //     }
-        // }
-        // // this is where we can determine if it is entering or exiting the area
-        // if (inRange) {
-        //     // printf("hello\n");
-        //     totalInRange += currentTime - lastTransition;
-        // }
-        //     lastTransition = currentTime;
-        // } else {
-        // }
+    	// event type three are in radius changes
         if (HEAD->wall == 0) {
             totalInRange += currentTime - lastTransition;
             statistics(currentTime - lastTransition);
@@ -448,6 +405,8 @@ void create_event(int type) {
         }
         return;
     }
+	// type 1 means point 1 will hit a wall so next wall collision for 1 must be found
+	// this is the same for type 2 only for point 2
     if (type == 1) {
         event *new_event = malloc(sizeof(event));
         // new_event->point1
@@ -470,8 +429,11 @@ void create_event(int type) {
         insert_event(new_event);
         // return;
     }
+	// This determines if there will be a transition from in range to out of range (or vice versa)
+	// within the time to the next wall hit
     double transition = ttotrans();
     // printf("hello\n");
+	// transition <= 0 is infinite time to collision and various other errors
     if (transition < 0) {
         // printf("\n");
         // return;
@@ -479,6 +441,7 @@ void create_event(int type) {
         // printf("shfkhasdT: %f\n", transition);
 
     } else {
+		// we only insert events that happen before the next wall hit.
         if (HEAD->timeOfEvent > (transitionPhase.time + currentTime)) {
         // if (1) {
             // printf("%f, %f, c:%f\n", HEAD->timeOfEvent, (timeToTransition + currentTime), currentTime);
@@ -495,6 +458,7 @@ void create_event(int type) {
             // printf("type: %D in %fs instead of %f\n", HEAD->type, HEAD->timeOfEvent, transitionPhase.time +currentTime);
         }
     }
+	// this creates null events to smooth rendering
     if ((currentTime + 1) < HEAD->timeOfEvent && smooth && opengl) {
         event *new_event = malloc(sizeof(event));
         // new_event->point1
@@ -504,6 +468,12 @@ void create_event(int type) {
     }
 }
 
+// math.stackexchange.com/questions/228841/how-do-i-calculate-the-intersections-of-a-straight-line-and-a-circle
+// Ax2 + Bx + C = 0 is the equation for the circle of radius centered around the origin
+// y = mx + b is the equation for the line that follows the relative velocities and positions
+// the problem is the intersection of a line and a circle with the circle radius being the communication
+// distance and the line being relative velocities and positions
+// the math follows the link above
 
 double ttotrans() {
     double A, B, C, m, b, r, x, y, vx, vy, d, X;
@@ -548,6 +518,7 @@ double ttotrans() {
         transitionPhase.time =  t2;
         transitionPhase.phase = 0;
     }
+	// if the roots multiplied are negative then 1 is pos and the other is negative. Therefore we are inside.
     if (t1*t2 >= 0.0f) {
         transitionPhase.phase = 1;
         // printf("positive:1\n");
@@ -565,7 +536,8 @@ double ttotrans() {
     }
 }
 
-
+// inserts events into our priority queue. They are sorted upon insertion so the head is always popped
+// this is a singly linked list
 void insert_event(event *e) {
 
     double it = 0;
@@ -598,7 +570,7 @@ void insert_event(event *e) {
     // printf("insert_event at depth %d. This %f < %f!\n", i, e->timeOfEvent, it);
 }
 
-
+// items are inserted in sorted order so we can pop the head
 void remove_event(event *e) {
     if (e == HEAD) {
         // HEAD == NULL;
@@ -612,7 +584,7 @@ void remove_event(event *e) {
     }
     free(e);
 }
-
+// statistics prints values to gnuplots buffer
 void statistics(double t) {
     statCounter++;
     // local int counter
