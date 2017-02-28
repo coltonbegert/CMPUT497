@@ -18,8 +18,8 @@ def print_socket(interface, mac, rssi):
     # print message
     global s
     global a_lock
-    with a_lock:
-        s.send(message)
+    # with a_lock:
+    s.send(message)
 
 class ScanPrint(btle.DefaultDelegate):
     def __init__(self):
@@ -96,8 +96,8 @@ if __name__ == "__main__":
     t2.start()
     while True:
         time.sleep(1)
-        with a_lock:
-            message = s.recv(1024)
+        # with a_lock:
+        message = s.recv(1024)
         if len(message) > 0:
             print (message)
     # with a_lock:
