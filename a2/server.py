@@ -7,8 +7,9 @@ import threading
 import sys
 #
 def get_input():
-    message = input()
-    print message
+    while True:
+        message = input()
+        print (message)
 
 
 s = socket.socket()         # Create a socket object
