@@ -27,7 +27,7 @@ class ScanPrint(btle.DefaultDelegate):
         # self.opts = opts
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
-        print "hello"
+        # print "hello"
         print_socket("hci1", dev.addr, dev.rssi)
 
 def start_ble_sniff():
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     t2.daemon = True
     t2.start()
     while True:
-        time.sleep(1)
+        # time.sleep(1)
         # with a_lock:
         message = s.recv(1024)
         if len(message) > 0:
