@@ -96,6 +96,10 @@ if __name__ == "__main__":
     t2.start()
     while True:
         time.sleep(5)
+        with a_lock:
+            message = s.recv(1024)
+        if len(message) > 0:
+            print (message)
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
