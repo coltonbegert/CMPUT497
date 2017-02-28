@@ -27,6 +27,7 @@ class ScanPrint(btle.DefaultDelegate):
         # self.opts = opts
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
+        print "hello"
         print_socket("hci1", dev.addr, dev.rssi)
 
 def start_ble_sniff():
