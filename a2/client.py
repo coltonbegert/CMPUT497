@@ -67,7 +67,7 @@ def sniffmgmt(p):
 
 def start_wifi_sniff():
     print "hello"
-    interface = str("mon" + mon)
+    interface = "mon" + str(mon)
     sniff(iface=interface, prn=sniffmgmt)
 if __name__ == "__main__":
     global s
