@@ -10,7 +10,7 @@ from bluepy import btle
 
 observedclients = []
 hci = 0
-mon = 0
+mon = 2
 
 
 def print_socket(interface, mac, rssi):
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     t2.daemon = True
     t2.start()
     while True:
-        time.sleep(5)
+        # time.sleep(5)
         with a_lock:
             message = s.recv(1024)
         if len(message) > 0:
