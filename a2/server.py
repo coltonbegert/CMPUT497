@@ -21,6 +21,9 @@ while True:
    c, addr = s.accept()     # Establish connection with client.
    print ('Got connection from', addr)
    counter = 0
+   t = threading.Thread(target = get_input)
+   t.daemon = True
+   t.start()
    while True:
     #   c.send(b'test')
         # for data in sys.stdin:
