@@ -6,9 +6,10 @@ import socket               # Import socket module
 import threading
 import sys
 #
-# def get_input():
-#     message = input()
-#
+def get_input():
+    message = input()
+    print message
+
 
 s = socket.socket()         # Create a socket object
 host = socket.gethostname() # Get local machine name
@@ -22,9 +23,9 @@ while True:
    counter = 0
    while True:
     #   c.send(b'test')
-        for data in sys.stdin:
-            print(data)
-            c.send(data)
+        # for data in sys.stdin:
+        #     print(data)
+            # c.send(data)
         # data = sys.stdin
         # if len(data) > 0:
             # c.send(data)
