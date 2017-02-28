@@ -13,12 +13,18 @@ s.listen(5)                 # Now wait for client connection.
 while True:
    c, addr = s.accept()     # Establish connection with client.
    print ('Got connection from', addr)
+   counter = 0
    while True:
     #   c.send(b'test')
+        counter += 1
         message = c.recv(1024)
         if not message: break
         if len(message) > 0:
             print(message.decode("ascii"))
+        if counter == 10:
+            counter = 0
+            c.send("buzz bitch")
+
    # c.send(b'test')
    # print(c.recv(512))
    c.close()                # Close the connection
