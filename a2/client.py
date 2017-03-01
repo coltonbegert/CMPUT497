@@ -1,5 +1,12 @@
 #!/usr/bin/python           # This is client.py file
 # https://www.tutorialspoint.com/python/python_networking.htm
+
+# Fantastic resource that I pulled most of this code from
+# https://pen-testing.sans.org/blog/2011/10/13/special-request-wireless-client-sniffing-with-scapy
+
+# BLE SCANNER sample code
+# http://ianharvey.github.io/bluepy-doc/scanner.html
+
 import socket               # Import socket module
 import time
 import datetime
@@ -15,6 +22,7 @@ mon = 2
 client = ""
 strength = ""
 
+# handles sending all messages to the server
 def print_socket(interface, mac, rssi):
     message = str(datetime.utcnow()) + " " + str(interface) + " " + str(mac) + " " + str(rssi)
     # print message
@@ -28,20 +36,22 @@ def print_socket(interface, mac, rssi):
             s.send("! found buzz command: " + message)
 
     s.send(message)
-
+# This is the BLE scanning section.
 class ScanPrint(btle.DefaultDelegate):
     def __init__(self):
         btle.DefaultDelegate.__init__(self)
         # self.opts = opts
 
+    # on discovery print the message to the server
     def handleDiscovery(self, dev, isNewDev, isNewData):
         # print "hello"
         print_socket("hci1", dev.addr, dev.rssi)
-
+# this is the function that gets run on a separate thread
 def start_ble_sniff():
     scanner = btle.Scanner(hci).withDelegate(ScanPrint())
     devices = scanner.scan(0)
 
+# Handles the wifi packet sniffing
 def sniffmgmt(p):
     # print "world"
     # Define our tuple (an immutable list) of the 3 management frame
@@ -74,10 +84,13 @@ def sniffmgmt(p):
                 # print p.addr2
                 observedclients.append(p.addr2)
 
+# thread that is run to sniff wifi
 def start_wifi_sniff():
     print "hello"
     interface = "mon" + str(mon)
     sniff(iface=interface, prn=sniffmgmt)
+
+
 if __name__ == "__main__":
     global s
     s = socket.socket()         # Create a socket object
@@ -88,15 +101,11 @@ if __name__ == "__main__":
     # print (s.recv(1024))
     # s.send(b'ack')
     global a_lock
-    # a_lock = thread.allocate_lock()
+    # semaphore for socket locking
     a_lock = threading.RLock()
-    # wifi_interface = "mon0"
-    # thread.start_new_thread(sniff, (iface=wifi_interface, prn=sniffmgmt))
-    # try:
-    #     thread.start_new_thread(start_wifi_sniff, ())
-    # except:
-    #     print "massive failure"
 
+
+    #start the threads for sniffing
     t = threading.Thread(target = start_wifi_sniff)
     t.daemon = True
     t.start()
@@ -106,35 +115,15 @@ if __name__ == "__main__":
     while True:
         # time.sleep(1)
         # with a_lock:
+        # Recieve messages from the server
         message = s.recv(1024)
         if len(message) > 0:
             print (message)
             command = message.split(' ')
+            # if it is a command -> use it
             if len(command) == 3 and command[0] == "buzz":
                 s.send("! " + message)
                 client = command[1]
                 strength = int(command[2])
 
-
-    # with a_lock:
-    #     message = ""
-    #     currentTime = time.time()
-    #     # message += datetime.datetime.strptime(time.time(), "YYYY-MM-DD HH:MM:SS.")
-    #     message += str(datetime.datetime.utcnow())
-    #     message += "\n"
-    #     # message = bytes(str(message),"ascii")
-    #     s.send(message)
-    # print_socket("colton1", "12:34:56:78", -76)
-
-    # for i in range(1, 20):
-    #     message = ""
-    #     currentTime = time.time()
-    #     # message += datetime.datetime.strptime(time.time(), "YYYY-MM-DD HH:MM:SS.")
-    #     message += str(datetime.datetime.utcnow())
-    #     message += "\n"
-    #     # message = bytes(str(message),"ascii")
-    #     s.send(message)
-    # while True:
-
-        # print(s.recv(1024))
     s.close()                     # Close the socket when done

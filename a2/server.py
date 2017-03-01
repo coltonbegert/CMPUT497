@@ -5,11 +5,13 @@
 import socket               # Import socket module
 import threading
 import sys
-#
-def get_input(c):
+
+c = ""
+# thread for user messages
+def get_input():
     while True:
         message = raw_input()
-        print (message)
+        # print (message)
         c.send(message)
 
 
@@ -23,18 +25,13 @@ while True:
    c, addr = s.accept()     # Establish connection with client.
    print ('Got connection from', addr)
    counter = 0
-   t = threading.Thread(target = get_input, args=([c]))
+   # start thread to listen for user commands
+   t = threading.Thread(target = get_input)
    t.daemon = True
    t.start()
    while True:
-    #   c.send(b'test')
-        # for data in sys.stdin:
-        #     print(data)
-            # c.send(data)
-        # data = sys.stdin
-        # if len(data) > 0:
-            # c.send(data)
-        # counter += 1
+
+        # print messages from client
         message = c.recv(1024)
         if not message: break
         if len(message) > 0:
