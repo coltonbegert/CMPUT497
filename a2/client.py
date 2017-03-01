@@ -22,7 +22,7 @@ def print_socket(interface, mac, rssi):
     global a_lock
     # with a_lock:
     if client != "" and strength != "":
-        if str(mac).lower() == client.lower() and str(rssi) == strength:
+        if str(mac).lower() == client.lower() and rssi >= strength:
             s.send(message)
     else:
         s.send(message)
