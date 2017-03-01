@@ -12,6 +12,8 @@ observedclients = []
 hci = 0
 mon = 2
 
+client = ""
+strength = ""
 
 def print_socket(interface, mac, rssi):
     message = str(datetime.utcnow()) + " " + str(interface) + " " + str(mac) + " " + str(rssi)
@@ -19,7 +21,11 @@ def print_socket(interface, mac, rssi):
     global s
     global a_lock
     # with a_lock:
-    s.send(message)
+    if client != "" and strength != "":
+        if str(mac).lower() == client.lower() and str(rssi) == strength:
+            s.send(message)
+    else:
+        s.send(message)
 
 class ScanPrint(btle.DefaultDelegate):
     def __init__(self):
@@ -101,6 +107,13 @@ if __name__ == "__main__":
         message = s.recv(1024)
         if len(message) > 0:
             print (message)
+            command = message.split(' ')
+            if len(command) == 3 and command[0] = "buzz":
+                s.send("! " + message)
+                client = command[1]
+                strength = command[2]
+
+
     # with a_lock:
     #     message = ""
     #     currentTime = time.time()
