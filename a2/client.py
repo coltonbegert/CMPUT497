@@ -22,13 +22,12 @@ def print_socket(interface, mac, rssi):
     global a_lock
     # with a_lock:
     if client != "" and strength != "":
-        # print type(rssi), type(strength)
-        # print (rssi)
-        # print strength
-        if str(mac).lower() == client.lower()) and rssi >= strength:
-            s.send(message)
-    else:
-        s.send(message)
+        if str(mac).lower() == client.lower() and rssi >= strength:
+            # s.send(message)
+            print "BUZZZZZ"
+            s.send("! found buzz command: " + message)
+
+    s.send(message)
 
 class ScanPrint(btle.DefaultDelegate):
     def __init__(self):
