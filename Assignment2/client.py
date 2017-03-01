@@ -113,8 +113,6 @@ if __name__ == "__main__":
     t2 = threading.Thread(target = start_ble_sniff)
     t2.daemon = True
     t2.start()
-    # while True:
-    #     time.sleep(5)
     while True:
         # time.sleep(1)
         # with a_lock:
@@ -128,4 +126,5 @@ if __name__ == "__main__":
                 s.send("! " + message)
                 client = command[1]
                 strength = int(command[2])
+
     s.close()                     # Close the socket when done

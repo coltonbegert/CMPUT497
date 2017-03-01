@@ -14,13 +14,13 @@ def get_input():
         # print (message)
         c.send(message)
 
+
 s = socket.socket()         # Create a socket object
 host = socket.gethostname() # Get local machine name
 port = 6666                 # Reserve a port for your service.
 s.bind((host, port))        # Bind to the port
 
 s.listen(5)                 # Now wait for client connection.
-counter = 0
 while True:
    c, addr = s.accept()     # Establish connection with client.
    print ('Got connection from', addr)
