@@ -1,0 +1,9 @@
+On the Pi:
+sudo /usr/sbin/ssh -Ddp 22 (This should be set on boot)
+ssh -nNT -R 9000:localhost:22 begert@ohaton.cs.ualberta.ca
+
+
+On computer:
+ssh begert@phaton.cs.ualberta.ca
+ssh -l pi -p 9000 localhost
+(pi login credentials)

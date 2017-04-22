@@ -1,0 +1,87 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\begin{document}
+
+\title{Long Distance Data Logging with Embedded Systems}
+\author{Colton Begert}
+
+\maketitle
+
+\begin{abstract}
+    Building a long range data retreival system that can pull images off of a camera with high gain parabolic Antennas.
+
+
+\end{abstract}
+
+\section{Introduction}
+The building of this project was and still is filled with problems that are not solved. The final design revolves around the TI SimpleLink Wifi CC3220SF. This chip has an spi bus that interfaces with an sd card and in the future a camera to store images and a web server to send them to the sink.
+The current implementation only writes files to an sd card.
+
+\section{Flashair}
+ The Toshiba Flash Air was the first design choice in making this project. This card is an sd card with a web server built into it. When paired with a motion activated hunting camera we would take images and store them on the card. When we needed to access them a connection to the flashair could be established and the images downloaded.\\
+ This implementation failed because of the fact that the hunting camera duty cycles the sd card making it imopossible to read the data off the card.
+
+ \section{MSP 432}
+ After the failure of the Flashair the msp 432 was the next candidate and a solution would be made fully implented.
+ The msp 432 came with another set of problems that were never solved before the project moved on.\\
+
+ The setup for the MSP432 contains a TI SimpleLink CC3100 boosterpack an sd card and the Arducam OV5642.
+ \subsection{SPI bus contention}
+ Both the wifi booster pack and the sd card share the SPI bus. In order to run both devices, duty cycling both devices was required. In practice this never worked as the sd card could never initialize after the booster pack was installed. Driving chip select low tells an SPI device that it does not have control over the bus and therfore must wait is the  way that sharing the bus is supposed to work. With the way that the sdcard was ebing read this interfered with the the sdcard and forced it to fail when attempting to initialize the storage medium.\\
+ The CC3100 Booster pack could not be programmed while the sd card was installed. To process of programming the cc3100 is generally very simple in that energia hanldes most of the work and hostname and password information are programmed to the booster pack. With the sd card on the same bus this programming step always failed.\\
+ Programing the MSP432 through energia was not possible with this setup.
+
+\subsection{Ram limitations}
+The usable ram on the MSP432 after firmware and application storage is ≈150kb. A 5MP picture is ≈ 3MB. This means that the jpeg must be buffered from the sd card in small chucks which would then be transmitted and re assembled on the base station. This leads to a issues of corruption but these problems were never encoutered as the project never made it this far on this board.
+
+
+\section{Raspberry Pi}
+The project was then moved to a raspberry pi as this allowed for large amounts of ram to buffer images. Networking would be done through usb wifi adapters and the pi working in AP mode.
+Development ran into an issue on the pi after I realized that the interface on the camera was a parrallel interface that required the reading of 10 pins and manually reading the register values to get the sensor data.
+This can be fixed withdifferent camera modules that include an arduino sheild that pre process the image and povides an i2c or serial interface.
+
+\section{TI SimpleLink CC3220SF}
+This was the final iteration of the project. Similar to the MSP432 it is a low power emebeded sytem. This chip has the wifi built into it allowing for the spi bus to only handle the sd card.
+The fate of development was the fact that the wifi api handles web pages as defining values in header files and is difficult to extend to show data off the sdcard.\\
+The CC3220 uses a real time operating system called TI-RTOS which allows for very powerful applications to be created on very simple hardware. The downside to this is that it is very hard to program. Given the time constraints after running into issues with every other implemeatation of this project the was not enough time to fully develop this solution. The final state is the sdcard is implented but does not interface with wifi nor the camera.
+
+\subsection{Debug mode}
+The board came pre programmed in release mode. This causes many obscure errors when attempting to flash the board through TI CCS. The erros show up as ice pic errors and the failure to connect to the debugger.\\
+The solution to this problem is to create a new image in the TI uniflash tool. When creating this new image selecting the option to run the image in debug flips the boards state and alllows you to hook up ccs. After flashing the uniflash image the debugger will work for all other project and will not be put back into release mode unless specified when building the project.
+
+\subsection{SD Card}
+The implementation is the ti-rtos sdfatfs example that is provided through the sdk. To get the example working with sd cards > 2gb you must redfine values to use the fat32 fs instead of fat16.
+The pinouts for connecting any sdhc card to this board are as follows
+
+\begin{center}
+\begin{tabular}{|c|c|}
+    \hline
+    SDCARD Pin & CC3220 Pin \\
+    \hline
+    sck & p05 \\
+    cs & p62 \\
+    di & p07 \\
+    do & p06 \\
+    cd & p08 \\
+    \hline
+\end{tabular}
+
+\end{center}
+
+
+
+\section{Improvements}
+With more time the direction of this project would be to improve upon the TI SimpleLink CC3220SF implementation. THis was the most promissing path that this project took as it is a really well designed board with good support. \\
+Merging the sdcard and wifi apis in order to display data over a webserver would be the first and most important improvment. After this adding a camera with a proper arduino shield and compatible i2c or serial interface in order to get the images onto the the sd-card.\\
+The biggest problem that I forsee in the continued develpoment would be the ram limitations of the board as it is an MSP432 internally and duty cycling data will still be needed. The way the TI-rtos implemets the sdfatfs however allows for arbitrary memory locations so I believe it would be possible to read the sdcard into abuffer and transmit without too many issues.\\
+
+
+\section{Conclusion}
+This project was restaretd many times and many issues were overcome and many killed a verison of the the project. Embeded development comes with many disadvantages but the low cost of the boards would allow for this project to scale to many nodes very easily asfter the first one is succesfully created.
+
+
+
+\end{document}

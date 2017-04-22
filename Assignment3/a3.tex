@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\begin{document}
+
+\title{Peer Review of Effects of Temperature and Humidity on Radio Signal Strength in Outdoor Wireless Sensor Networks}
+\author{Colton Begert}
+
+\maketitle
+
+\begin{abstract}
+The paper [1] by Jari Lumomala and Ismo Hakala creates equations and results to determine the signal degredation of wireless networks based on environmental conditions.
+A Raspberry Pi and MSP432 with the SimpleLink CC3100 boosterpack was used to recreate the expreiment from the paper.
+
+\end{abstract}
+
+\section{Introduction}
+Changing environmental conditions have a large impact on the the reliablility of wireless networks. The paper looks into the effects of temperature and humidity as the major causes of environmental impacts on RSSI.
+The paper creates an apaaratus that contains both a data sink and a wireless node and tracks the connection strength over time. In order to replicate the results I needed to build a similar aparatus.\\
+
+
+
+
+\section{Experimental Design}
+The measurements were done using an aparatus containing a wireless node and a data sink. The data that is kept by the data sink is a timestamp, temperature, humidity and the RSSI of the wireless network.
+\subsection{Data Sink}
+The measurements of signal strength as well as measurments of the current environmental conditions were done on a Rapsberry Pi 2.
+A Comfast 802.11b/g high power wireless USB Adapter (Model: CF-1300UG) was used to connect to the wireless node and maitian a connection to record RSSI values.\\
+
+The data sink uses a chip cap sip 2 humidity and temperature sensor to keep acurate environmental conditions for data retreival.
+This is an i2c interface on which the temperature and humidity is read. The sink runs a python program that logs the data for future processing.\\
+
+To setup the sink follow the instruction in link [5] to enable i2c on the raspberry pi. The python program rssi\_monitor.py will read the temperature and humidity every time it detects the wireless node and will record the values.
+\subsection{Wireless Node}
+The wireless node in this experiment was made with a TI MSP 432 and a TI SimpleLink CC3100 boosterpack. The deivce creates a wireless network with itself as the AP. It will maintain connections and allow for its signal strength to be measured in differing weather conditions.\\
+
+The node was programmed with energia to create an access point. It will broadcast a network that the sink can monitor. It is a low power device that is powered through a USB battery. This allows for long term deployment so many cycles can be run to help minimize the variations of antenna orientation and other external sources of error.
+
+
+\section{Improvements}
+For my experiment to provide reliable readings a permenat test must be set up. Minor changes in atenna aim and other external variables cause an error rate that is much higher than the effect that is being observed.
+On small temperature and humidiy fluctuations ≈5ºc and 10\% humidity changes the resulting RSSI chage is expected to be around 1dbm accoriding to the paper. In a non permanent setup, there can be as much as 9dbm of noise in the readings that was observed. With 900\% error it is hard to make an accurate analysis of the statistical significance of environmental conditions.
+A more fixed setip allows for a larger data set with multiple temperature cycles over multiple days which removes error in the readings. Summer days and nights apper to be much better at this becuase of the consistency and size of temperature fluctuations between day and night.
+\section{Results}
+At this time there are no concrete results as the weather was not playing nice with data measurements. For the Results to be accurately tested, we need a day with a a large temperature change of >= 10ºC
+
+
+\section{Conclusion}
+The paper shows really promissing results but the error that is found in my experiments is so much greater that it makes the effects seem really hard to measure. With better weather and a permanent setup to limit external varaitaions data could be produced to verify the claims.\\
+The effects of weather on outdoor embeded system design is something that needs to be considred when designing systems that need to be reliable in all sorts of conditions.
+
+
+\section{Sources}
+Website Sources used in building the project:
+
+[2] http://www.instructables.com/id/SHT25-Temperature-and-Relative-Humidity-Sensor-in-/
+
+[3] http://forum.arduino.cc/index.php?topic=291340.0
+
+[4] http://wisense.in/datasheets/916-127B.pdf
+
+[5] https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c
+
+[6] http://stackoverflow.com/questions/4256107/running-bash-commands-in-python
+
+[7] http://www.instructables.com/id/Raspberry-Pi-HIH6130-I2C-Humidity-Temperature-Sens/
+
+\section{REFERENCES}
+[1] Luomala, J., & Hakala, I. (2015). Effects of Temperature and Humidity on Radio Signal Strength in Outdoor Wireless Sensor Networks. In M. Ganzha, L. Maciaszek, & M. Paprzycki (Eds.), Proceedings of the 2015 Federated Conference on Computer Science and Information Systems (pp. 1247-1255). Annals of Computer Science and Information Systems, 5. IEEE. doi:10.15439/2015F241
+
+
+\end{document}
