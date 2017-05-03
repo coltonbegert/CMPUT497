@@ -3,9 +3,18 @@ import sys
 import time
 import subprocess
 import re
+import requests
 bus = smbus.SMBus(1)
 address = 0x38
-   
+
+def http_sink(t, humid, temp, rssi):
+    packet = {"timestamp":ts, "humidity":humid, "temperature":temp, "rssi":rssi}
+    try:
+        r = requests.post("https://begert.ca/api", json=packet)
+    except Exception as e:
+        print e
+
+
 def cc2():
 	#cap = []
 	bus.write_byte(address, 0x70)
@@ -42,11 +51,20 @@ def main():
 			cap = cc2()
 			RSSI = rssi()
 			output = []
-			output.append(str(time.time()))
-			output.append(str(cap[0]))
-			output.append(str(cap[1]))
-			output.append(RSSI)	
-			f.write(",".join(output) + '\n')
+            ts = str(time.time())
+            humidity = str(cap[0])
+            temperature = str(cap[1])
+
+            # write to disk
+            output.append(ts)
+            output.append(humidity)
+            output.append(temperature)
+            output.append(RSSI)
+            f.write(",".join(output) + '\n')
+
+            # write to server
+            http_sink(ts, humidity, temperature, RSSI)
+
 			print ",".join(output)
 			time.sleep(1)
 main()
